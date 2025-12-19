@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Role with It Typing</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/rollStyle.css">
+
+
+</head>
+<body onclick="ensureFocus()">
+<main>
+
+    <input type="text" id="keyboard-capture" 
+           autocomplete="off" 
+           autocorrect="off" 
+           autocapitalize="off" 
+           spellcheck="false" 
+           aria-label="Typing Area">
+
+    <div id="app" class="w-full max-w-5xl p-6 text-center" aria-hidden="false">
+        <!-- Main Menu -->
+        <div id="menu-screen" class="space-y-6">
+            <h1 class="text-5xl md:text-6xl font-black text-sky-400 tracking-tighter">Role with It Typing</h1>
+            
+            <div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 text-left space-y-4 max-w-xl mx-auto shadow-2xl">
+                <p class="text-lg text-slate-300 italic">Accessible Edition (Local Voice)</p>
+                <div class="space-y-2 text-slate-200 text-sm md:text-base">
+                    <p>• Press <span class="text-sky-400 font-bold underline">SPACE</span> to start.</p>
+                    <p>• Local voice synthesis removes typing lag.</p>
+                    <p>• Mistakes trigger a beep and the prompt repeats.</p>
+                    <p>• Exit? Press <span class="text-sky-400 font-bold underline">BACKSLASH (\)</span>.</p>
+                </div>
+            </div>
+
+            <!-- Gemini Generator -->
+            <div class="bg-slate-900/50 p-6 rounded-2xl border border-sky-500/30 max-w-xl mx-auto space-y-4">
+                <h3 class="text-sky-300 font-bold">Custom Content ✨</h3>
+                <div class="flex flex-col md:flex-row gap-2">
+                    <input type="text" id="generator-prompt" placeholder="Topic..." 
+                           class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none">
+                    <button id="generate-btn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-lg transition-colors">
+                        Generate
+                    </button>
+                </div>
+                <div id="generator-loading" class="hidden flex items-center justify-center gap-2 text-sky-400 italic">
+                    <div class="spinner"></div>
+                    <span>Writing...</span>
+                </div>
+            </div>
+
+            <p class="animate-pulse text-sky-400 text-xl font-bold uppercase tracking-widest mt-4">Press SPACE to begin</p>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden space-y-12">
+            <div id="lyrics-display" class="text-4xl md:text-5xl leading-relaxed font-bold tracking-normal break-words transition-all duration-300">
+                <!-- Lyrics here -->
+            </div>
+            <div id="status-bar" class="flex justify-between items-center text-slate-500 font-mono text-lg md:text-xl max-w-3xl mx-auto border-t border-slate-800 pt-4">
+                <span id="char-indicator">Awaiting input...</span>
+                <span>\ to finish</span>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden space-y-8 py-10">
+            <h2 class="text-5xl font-black text-green-400 uppercase">Results</h2>
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 w-40 md:w-48">
+                    <p class="text-slate-400 text-xs uppercase tracking-widest mb-2">Speed</p>
+                    <p id="wpm-val" class="text-3xl md:text-4xl font-black">0 WPM</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 w-40 md:w-48">
+                    <p class="text-slate-400 text-xs uppercase tracking-widest mb-2">Accuracy</p>
+                    <p id="accuracy-val" class="text-3xl md:text-4xl font-black">0%</p>
+                </div>
+            </div>
+            <div id="ai-feedback-container" class="bg-slate-800/80 p-6 rounded-2xl border border-sky-500/30 max-w-2xl mx-auto text-left">
+                <p id="ai-feedback-text" class="text-slate-300 italic">Reviewing your performance...</p>
+            </div>
+            <button onclick="location.reload()" class="bg-sky-600 hover:bg-sky-500 text-white px-12 py-4 rounded-full text-xl font-black transition-all transform hover:scale-105">RESTART</button>
+        </div>
+    </div>
+    <script src="scripts/rollWithIt.js"></script>
+</main>
+</body>
+</html>
