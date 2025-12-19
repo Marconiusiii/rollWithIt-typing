@@ -311,6 +311,14 @@ function finishGame() {
 	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
 }
-document
-	.getElementById('startLessonButton')
+//Button Wiring
+document.getElementById('startLessonButton')
 	.addEventListener('click', startTypingLesson);
+
+document
+	.getElementById('exitLessonButton')
+	.addEventListener('click', () => {
+		if (gameState === 'PLAYING') {
+			finishGame();
+		}
+	});
