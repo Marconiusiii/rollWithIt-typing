@@ -17,9 +17,9 @@ let currentCharIndex = 0;
 let gameState = 'MENU';
 let totalKeystrokes = 0;
 let errors = 0;
+
 let typingStartTime = null;
 let totalTypingTime = 0;
-
 
 const captureInput = document.getElementById('keyboard-capture');
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -40,76 +40,82 @@ function ensureFocus() {
 		captureInput.focus();
 	}
 }
+
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
-	const footer = document.getElementById('footer');
-
 	const gameScreen = document.getElementById('game-screen');
 	const resultsScreen = document.getElementById('results-screen');
+	const footer = document.getElementById('footer');
 
 	if (targetState === 'MENU') {
 		appHeader.classList.remove('hidden');
 		appHeader.removeAttribute('inert');
-		footer.classList.remove('hidden');
-footer.removeAttribute('inert');
-
 
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
 
 		resultsScreen.classList.add('hidden');
 		resultsScreen.setAttribute('inert', '');
+
+		footer.classList.remove('hidden');
+		footer.removeAttribute('inert');
 	}
 
 	if (targetState === 'PLAYING') {
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
-		footer.classList.add('hidden');
-		footer.setAttribute('inert', '');
-
 
 		gameScreen.classList.remove('hidden');
 		gameScreen.removeAttribute('inert');
 
 		resultsScreen.classList.add('hidden');
 		resultsScreen.setAttribute('inert', '');
+
+		footer.classList.add('hidden');
+		footer.setAttribute('inert', '');
 	}
 
 	if (targetState === 'RESULTS') {
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
-		footer.classList.add('hidden');
-		footer.setAttribute('inert', '');
-
 
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
 
 		resultsScreen.classList.remove('hidden');
 		resultsScreen.removeAttribute('inert');
+
+		footer.classList.add('hidden');
+		footer.setAttribute('inert', '');
 	}
 }
 
+/* --- GAME START --- */
 
-// --- GAME START (New explicit entry point) ---
 function startTypingLesson() {
 	if (gameState !== 'MENU') {
 		return;
 	}
 
 	if (!lyricsText.trim()) {
-	speak("No typing lesson content is available yet.");
-	return;
-}
-
+		speak("No typing lesson content is available yet.");
+		return;
+	}
 
 	if (audioCtx.state === 'suspended') {
 		audioCtx.resume();
 	}
 
 	lines = lyricsText.split('\n').filter(l => l.trim());
-	gameState = 'PLAYING';
 
+	currentLineIndex = 0;
+	currentCharIndex = 0;
+	totalKeystrokes = 0;
+	errors = 0;
+	typingStartTime = null;
+	totalTypingTime = 0;
+
+	gameState = 'PLAYING';
 
 	setScreenState('PLAYING');
 
@@ -118,8 +124,8 @@ function startTypingLesson() {
 	promptChar();
 }
 
+/* --- SPEECH --- */
 
-// --- LOCAL SPEECH API ---
 function speak(text) {
 	return new Promise((resolve) => {
 		if (isSpeaking) {
@@ -129,7 +135,6 @@ function speak(text) {
 		isSpeaking = true;
 
 		const utterance = new SpeechSynthesisUtterance(text);
-
 		const voices = window.speechSynthesis.getVoices();
 		const enVoice =
 			voices.find(v => v.lang.includes('en') && v.name.includes('Samantha')) ||
@@ -174,6 +179,8 @@ function playBeep() {
 	osc.stop(audioCtx.currentTime + 0.1);
 }
 
+/* --- RENDERING --- */
+
 function render() {
 	const container = document.getElementById('lyrics-display');
 	container.innerHTML = '';
@@ -205,19 +212,21 @@ function render() {
 
 async function promptChar() {
 	if (!lines[currentLineIndex]) {
-	return;
-}
+		return;
+	}
 
 	const char = lines[currentLineIndex][currentCharIndex];
-	const p =
+	const spoken =
 		punctuationMap[char] ||
 		(char === char.toUpperCase() && char !== char.toLowerCase()
 			? `Capital ${char}`
 			: char);
 
-	document.getElementById('char-indicator').textContent = `Type: ${p}`;
-	speak(p);
+	document.getElementById('char-indicator').textContent = `Type: ${spoken}`;
+	speak(spoken);
 }
+
+/* --- INPUT HANDLING --- */
 
 async function processKey(key) {
 	if (gameState !== 'PLAYING') {
@@ -231,21 +240,17 @@ async function processKey(key) {
 
 	const expected = lines[currentLineIndex][currentCharIndex];
 
-// Start timing on the first correct key of a line
-if (currentCharIndex === 0 && typingStartTime === null) {
-	typingStartTime = Date.now();
-}
+	if (key.toLowerCase() === expected.toLowerCase() || (expected === ' ' && key === ' ')) {
 
-totalKeystrokes++;
+		if (currentCharIndex === 0 && typingStartTime === null) {
+			typingStartTime = Date.now();
+		}
 
-
-	if (
-		key.toLowerCase() === expected.toLowerCase() ||
-		(expected === ' ' && key === ' ')
-	) {
+		totalKeystrokes++;
 		currentCharIndex++;
 
 		if (currentCharIndex >= lines[currentLineIndex].length) {
+
 			if (typingStartTime !== null) {
 				totalTypingTime += Date.now() - typingStartTime;
 				typingStartTime = null;
@@ -270,6 +275,7 @@ totalKeystrokes++;
 			promptChar();
 		}
 	} else {
+		totalKeystrokes++;
 		errors++;
 		playBeep();
 		promptChar();
@@ -293,6 +299,8 @@ captureInput.addEventListener('keydown', (e) => {
 	}
 });
 
+/* --- RESULTS --- */
+
 function finishGame() {
 	gameState = 'RESULTS';
 
@@ -301,18 +309,27 @@ function finishGame() {
 	const resultsHeading = document.getElementById('resultsHeading');
 	resultsHeading.focus();
 
-	const mins = totalTypingTime / 60000;
-
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
-	const wpm = Math.round((correctKeystrokes / 5) / mins) || 0;
-	const acc = Math.round((correctKeystrokes / Math.max(1, totalKeystrokes)) * 100) || 0;
+	let wpm = 0;
+
+	if (totalTypingTime > 0 && correctKeystrokes > 0) {
+		const mins = totalTypingTime / 60000;
+		wpm = Math.round((correctKeystrokes / 5) / mins);
+	}
+
+	const acc = Math.round(
+		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
+	) || 0;
 
 	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
 }
-//Button Wiring
-document.getElementById('startLessonButton')
+
+/* --- BUTTON WIRING --- */
+
+document
+	.getElementById('startLessonButton')
 	.addEventListener('click', startTypingLesson);
 
 document
@@ -322,6 +339,8 @@ document
 			finishGame();
 		}
 	});
+
+/* --- FOOTER YEAR --- */
 
 const yearEl = document.getElementById('copyrightYear');
 
