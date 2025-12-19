@@ -48,6 +48,7 @@ function setScreenState(targetState) {
 	const footer = document.getElementById('footer');
 
 	if (targetState === 'MENU') {
+		document.title = 'Roll with It Typing';
 		appHeader.classList.remove('hidden');
 		appHeader.removeAttribute('inert');
 
@@ -62,6 +63,7 @@ function setScreenState(targetState) {
 	}
 
 	if (targetState === 'PLAYING') {
+		document.title = 'Roll with It Typing';
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -76,6 +78,7 @@ function setScreenState(targetState) {
 	}
 
 	if (targetState === 'RESULTS') {
+		document.title = 'Roll with It Typing Results';
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -316,6 +319,17 @@ function finishGame() {
 	if (totalTypingTime > 0 && correctKeystrokes > 0) {
 		const mins = totalTypingTime / 60000;
 		wpm = Math.round((correctKeystrokes / 5) / mins);
+	}
+
+	const wpmNote = document.getElementById('wpmNote');
+
+	if (totalTypingTime === 0 || correctKeystrokes === 0) {
+		wpmNote.textContent =
+			'Never gonna give you a Commitment score. You didn’t type long enough for us to measure it.';
+			wpmNote.classList.remove('hidden');
+		} else {
+			wpmNote.textContent = '';
+			wpmNote.classList.add('hidden');
 	}
 
 	const acc = Math.round(

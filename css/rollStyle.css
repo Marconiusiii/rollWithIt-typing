@@ -315,3 +315,10 @@ body {
 	outline: 3px solid #38bdf8;
 	outline-offset: 3px;
 }
+.results-note {
+	margin-bottom: 2rem;
+	font-size: 1rem;
+	color: #cbd5f5;
+	font-style: italic;
+	text-align: center;
+}
