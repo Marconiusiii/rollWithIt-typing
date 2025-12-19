@@ -1,4 +1,3 @@
-const apiKey = "";
 let lyricsText = `We're no strangers to love
 You know the rules and so do I
 A full commitment's what I'm thinkin' of
@@ -39,12 +38,57 @@ function ensureFocus() {
 		captureInput.focus();
 	}
 }
+function setScreenState(targetState) {
+	const appHeader = document.querySelector('.app-header');
+	const gameScreen = document.getElementById('game-screen');
+	const resultsScreen = document.getElementById('results-screen');
+
+	if (targetState === 'MENU') {
+		appHeader.classList.remove('hidden');
+		appHeader.removeAttribute('inert');
+
+		gameScreen.classList.add('hidden');
+		gameScreen.setAttribute('inert', '');
+
+		resultsScreen.classList.add('hidden');
+		resultsScreen.setAttribute('inert', '');
+	}
+
+	if (targetState === 'PLAYING') {
+		appHeader.classList.add('hidden');
+		appHeader.setAttribute('inert', '');
+
+		gameScreen.classList.remove('hidden');
+		gameScreen.removeAttribute('inert');
+
+		resultsScreen.classList.add('hidden');
+		resultsScreen.setAttribute('inert', '');
+	}
+
+	if (targetState === 'RESULTS') {
+		appHeader.classList.add('hidden');
+		appHeader.setAttribute('inert', '');
+
+		gameScreen.classList.add('hidden');
+		gameScreen.setAttribute('inert', '');
+
+		resultsScreen.classList.remove('hidden');
+		resultsScreen.removeAttribute('inert');
+	}
+}
+
 
 // --- GAME START (New explicit entry point) ---
 function startTypingLesson() {
 	if (gameState !== 'MENU') {
 		return;
 	}
+
+	if (!lyricsText.trim()) {
+	speak("No typing lesson content is available yet.");
+	return;
+}
+
 
 	if (audioCtx.state === 'suspended') {
 		audioCtx.resume();
@@ -54,39 +98,13 @@ function startTypingLesson() {
 	gameState = 'PLAYING';
 	startTime = Date.now();
 
-	const gameScreen = document.getElementById('game-screen');
-	gameScreen.classList.remove('hidden');
+	setScreenState('PLAYING');
 
 	captureInput.focus();
 	render();
 	promptChar();
 }
 
-// --- Gemini API (For Generative tasks only) ---
-async function callGemini(prompt, systemInstruction = "") {
-	const payload = {
-		contents: [{ parts: [{ text: prompt }] }],
-		systemInstruction: systemInstruction
-			? { parts: [{ text: systemInstruction }] }
-			: undefined
-	};
-
-	try {
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			}
-		);
-
-		const data = await response.json();
-		return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-	} catch (e) {
-		return "";
-	}
-}
 
 // --- LOCAL SPEECH API ---
 function speak(text) {
@@ -246,37 +264,24 @@ captureInput.addEventListener('keydown', (e) => {
 	}
 });
 
-async function finishGame() {
+function finishGame() {
 	gameState = 'RESULTS';
 
-	const mins = (Date.now() - startTime) / 60000;
-	const wpm = Math.round(((totalKeystrokes - errors) / 5) / mins) || 0;
-	const acc =
-		Math.round(
-			((totalKeystrokes - errors) / Math.max(1, totalKeystrokes)) * 100
-		) || 0;
+	setScreenState('RESULTS');
 
-	document.getElementById('game-screen').classList.add('hidden');
-	document.getElementById('results-screen').classList.remove('hidden');
+	const resultsHeading = document.getElementById('resultsHeading');
+	resultsHeading.focus();
+
+	const mins = (Date.now() - startTime) / 60000;
+
+	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
+
+	const wpm = Math.round((correctKeystrokes / 5) / mins) || 0;
+	const acc = Math.round((correctKeystrokes / Math.max(1, totalKeystrokes)) * 100) || 0;
 
 	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
-
-	const review = await callGemini(
-		`Speed: ${wpm}, Acc: ${acc}%. Give 2 sentences of encouragement.`,
-		"Friendly typing coach."
-	);
-
-	document.getElementById('ai-feedback-text').textContent = review;
-	speak(review);
 }
-
-// Wire Start Typing Lesson button
 document
 	.getElementById('startLessonButton')
 	.addEventListener('click', startTypingLesson);
-
-// Populate voices list for iOS
-window.speechSynthesis.onvoiceschanged = () => {
-	window.speechSynthesis.getVoices();
-};
