@@ -1,4 +1,15 @@
-let lyricsText = ``;
+let lyricsText = `We're no strangers to love
+You know the rules and so do I
+A full commitment's what I'm thinkin' of
+You wouldn't get this from any other guy
+I just wanna tell you how I'm feeling
+Gotta make you understand
+Never gonna give you up
+Never gonna let you down
+Never gonna run around and desert you
+Never gonna make you cry
+Never gonna say goodbye
+Never gonna tell a lie and hurt you`;
 
 let lines = [];
 let currentLineIndex = 0;
@@ -6,7 +17,9 @@ let currentCharIndex = 0;
 let gameState = 'MENU';
 let totalKeystrokes = 0;
 let errors = 0;
-let startTime = null;
+let typingStartTime = null;
+let totalTypingTime = 0;
+
 
 const captureInput = document.getElementById('keyboard-capture');
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -85,7 +98,7 @@ function startTypingLesson() {
 
 	lines = lyricsText.split('\n').filter(l => l.trim());
 	gameState = 'PLAYING';
-	startTime = Date.now();
+
 
 	setScreenState('PLAYING');
 
@@ -206,7 +219,14 @@ async function processKey(key) {
 	}
 
 	const expected = lines[currentLineIndex][currentCharIndex];
-	totalKeystrokes++;
+
+// Start timing on the first correct key of a line
+if (currentCharIndex === 0 && typingStartTime === null) {
+	typingStartTime = Date.now();
+}
+
+totalKeystrokes++;
+
 
 	if (
 		key.toLowerCase() === expected.toLowerCase() ||
@@ -215,6 +235,11 @@ async function processKey(key) {
 		currentCharIndex++;
 
 		if (currentCharIndex >= lines[currentLineIndex].length) {
+			if (typingStartTime !== null) {
+				totalTypingTime += Date.now() - typingStartTime;
+				typingStartTime = null;
+			}
+
 			render();
 
 			const completedText = lines[currentLineIndex];
@@ -265,7 +290,7 @@ function finishGame() {
 	const resultsHeading = document.getElementById('resultsHeading');
 	resultsHeading.focus();
 
-	const mins = (Date.now() - startTime) / 60000;
+	const mins = totalTypingTime / 60000;
 
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
