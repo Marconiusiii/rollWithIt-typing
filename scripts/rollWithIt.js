@@ -24,9 +24,31 @@ const punctuationMap = {
 };
 
 function ensureFocus() {
-	if (document.activeElement.id !== 'generator-prompt') {
+	if (gameState === 'PLAYING') {
 		captureInput.focus();
 	}
+}
+
+// --- GAME START (New explicit entry point) ---
+function startTypingLesson() {
+	if (gameState !== 'MENU') {
+		return;
+	}
+
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	lines = lyricsText.split('\n').filter(l => l.trim());
+	gameState = 'PLAYING';
+	startTime = Date.now();
+
+	const gameScreen = document.getElementById('game-screen');
+	gameScreen.classList.remove('hidden');
+
+	captureInput.focus();
+	render();
+	promptChar();
 }
 
 // --- Gemini API (For Generative tasks only) ---
@@ -55,31 +77,7 @@ async function callGemini(prompt, systemInstruction = "") {
 	}
 }
 
-async function generateCustomLyrics() {
-	const promptInput = document.getElementById('generator-prompt');
-	const topic = promptInput.value || "A short poem about a rainy day";
-
-	document.getElementById('generate-btn').disabled = true;
-	document.getElementById('generator-loading').classList.remove('hidden');
-
-	try {
-		const result = await callGemini(
-			topic,
-			"Generate 6-8 short lines of lyrics for a typing game. No labels."
-		);
-
-		if (result.trim()) {
-			lyricsText = result.trim();
-			speak("Content updated. Press space to start.");
-		}
-	} finally {
-		document.getElementById('generate-btn').disabled = false;
-		document.getElementById('generator-loading').classList.add('hidden');
-		ensureFocus();
-	}
-}
-
-// --- LOCAL SPEECH API (Instant, No Network Lag) ---
+// --- LOCAL SPEECH API ---
 function speak(text) {
 	return new Promise((resolve) => {
 		if (isSpeaking) {
@@ -176,52 +174,47 @@ async function promptChar() {
 }
 
 async function processKey(key) {
-	if (gameState === 'MENU') {
-		if (key === ' ') {
-			startGame();
-		}
+	if (gameState !== 'PLAYING') {
 		return;
 	}
 
-	if (gameState === 'PLAYING') {
-		if (key === '\\') {
-			finishGame();
-			return;
-		}
+	if (key === '\\') {
+		finishGame();
+		return;
+	}
 
-		const expected = lines[currentLineIndex][currentCharIndex];
-		totalKeystrokes++;
+	const expected = lines[currentLineIndex][currentCharIndex];
+	totalKeystrokes++;
 
-		if (
-			key.toLowerCase() === expected.toLowerCase() ||
-			(expected === ' ' && key === ' ')
-		) {
-			currentCharIndex++;
+	if (
+		key.toLowerCase() === expected.toLowerCase() ||
+		(expected === ' ' && key === ' ')
+	) {
+		currentCharIndex++;
 
-			if (currentCharIndex >= lines[currentLineIndex].length) {
-				render();
+		if (currentCharIndex >= lines[currentLineIndex].length) {
+			render();
 
-				const completedText = lines[currentLineIndex];
-				currentLineIndex++;
-				currentCharIndex = 0;
+			const completedText = lines[currentLineIndex];
+			currentLineIndex++;
+			currentCharIndex = 0;
 
-				await speak(`Phrase complete: ${completedText}`);
+			await speak(`Phrase complete: ${completedText}`);
 
-				if (currentLineIndex >= lines.length) {
-					finishGame();
-				} else {
-					render();
-					promptChar();
-				}
+			if (currentLineIndex >= lines.length) {
+				finishGame();
 			} else {
 				render();
 				promptChar();
 			}
 		} else {
-			errors++;
-			playBeep();
+			render();
 			promptChar();
 		}
+	} else {
+		errors++;
+		playBeep();
+		promptChar();
 	}
 }
 
@@ -236,27 +229,11 @@ captureInput.addEventListener('input', (e) => {
 });
 
 captureInput.addEventListener('keydown', (e) => {
-	if (e.key === ' ' || e.key === '\\') {
+	if (e.key === '\\') {
 		e.preventDefault();
 		processKey(e.key);
 	}
 });
-
-function startGame() {
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	lines = lyricsText.split('\n').filter(l => l.trim());
-	gameState = 'PLAYING';
-	startTime = Date.now();
-
-	document.getElementById('menu-screen').classList.add('hidden');
-	document.getElementById('game-screen').classList.remove('hidden');
-
-	render();
-	promptChar();
-}
 
 async function finishGame() {
 	gameState = 'RESULTS';
@@ -271,7 +248,7 @@ async function finishGame() {
 	document.getElementById('game-screen').classList.add('hidden');
 	document.getElementById('results-screen').classList.remove('hidden');
 
-	document.getElementById('wpm-val').textContent = `${wpm} WPM`;
+	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
 
 	const review = await callGemini(
@@ -283,12 +260,12 @@ async function finishGame() {
 	speak(review);
 }
 
+// Wire Start Typing Lesson button
 document
-	.getElementById('generate-btn')
-	.addEventListener('click', generateCustomLyrics);
+	.getElementById('startLessonButton')
+	.addEventListener('click', startTypingLesson);
 
+// Populate voices list for iOS
 window.speechSynthesis.onvoiceschanged = () => {
 	window.speechSynthesis.getVoices();
 };
-
-window.onload = () => captureInput.focus();

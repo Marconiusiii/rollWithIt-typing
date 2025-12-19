@@ -4,97 +4,92 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Roll with It Typing</title>
-<meta name="description" content="A fun accessible typing tutor that you can really commit to.">
-<meta name="author" content="Chancey Fleet and Marco Salsiccia">
-<meta name="keywords" content="typing, typing tutor, roll with it, rick astley, rick roll, accessible, blind, blind design, humor, assistive technology">
+
+	<meta name="description" content="A fun accessible typing tutor that you can really commit to.">
+	<meta name="author" content="Chancey Fleet and Marco Salsiccia">
 
 	<script src="https://cdn.tailwindcss.com"></script>
-
 	<link rel="stylesheet" type="text/css" href="css/rollStyle.css">
 </head>
 
-<body onclick="ensureFocus()">
-	<main>
-		<input
-			type="text"
-			id="keyboard-capture"
-			autocomplete="off"
-			autocorrect="off"
-			autocapitalize="off"
-			spellcheck="false"
-			aria-label="Typing Area"
-		>
+<body>
+	<main id="app" class="app-container">
+		<header class="app-header">
+			<h1 id="appTitle">Roll with It Typing</h1>
 
-		<div id="app" class="w-full max-w-5xl p-6 text-center">
-			<div id="menu-screen" class="space-y-6">
-				<h1 class="text-5xl md:text-6xl font-black text-sky-400 tracking-tighter">
-					Roll with It Typing
-				</h1>
-				<p>By Chancey Fleet, edited by Marco Salsiccia. Last Update: Dec 18, 2025.</p>
+			<p class="app-meta">
+				By Chancey Fleet, edited by Marco Salsiccia. Last update: Dec 18, 2025.
+			</p>
 
-				<div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 text-left space-y-4 max-w-xl mx-auto shadow-2xl">
-					<p class="text-lg text-slate-300 italic">Accessible Edition: Uses your local system voice synthesis to speak.</p>
+			<section class="instructions">
+				<p class="instructions-lead">
+					Accessible edition using your local system voice synthesis.
+				</p>
 
-					<div class="space-y-2 text-slate-200 text-sm md:text-base">
-						<p>• Press <span class="text-sky-400 font-bold underline">SPACE</span> to start.</p>
-						<p>• Local voice synthesis removes typing lag.</p>
-						<p>• Mistakes trigger a beep and the prompt repeats.</p>
-						<p>• Exit? Press <span class="text-sky-400 font-bold underline">BACKSLASH (\)</span>.</p>
-					</div>
+				<ul class="instructions-list">
+					<li>Type the characters you hear.</li>
+					<li>Mistakes trigger a beep and the prompt repeats.</li>
+					<li>You can exit at any time with the backslash key.</li>
+				</ul>
+
+				<button
+					id="startLessonButton"
+					type="button"
+					class="start-button"
+				>
+					Start Typing Lesson
+				</button>
+			</section>
+		</header>
+
+		<section id="game-screen" class="game-screen hidden">
+			<input
+				type="text"
+				id="keyboard-capture"
+				autocomplete="off"
+				autocorrect="off"
+				autocapitalize="off"
+				spellcheck="false"
+			>
+
+			<div
+				id="lyrics-display"
+				class="typing-display"
+			></div>
+
+			<div id="status-bar" class="status-bar">
+				<span id="char-indicator">Awaiting input...</span>
+				<span>\ to finish</span>
+			</div>
+		</section>
+
+		<section id="results-screen" class="results-screen hidden">
+			<h2>Results</h2>
+
+			<div class="results-metrics">
+				<div class="metric">
+					<p class="metric-label">Commitments per Minute</p>
+					<p id="wpm-val" class="metric-value">0</p>
 				</div>
 
+				<div class="metric">
+					<p class="metric-label">AccuRickcy</p>
+					<p id="accuracy-val" class="metric-value">0%</p>
+				</div>
+			</div>
 
-				<p class="animate-pulse text-sky-400 text-xl font-bold uppercase tracking-widest mt-4">
-					Press SPACE to begin
+			<div id="ai-feedback-container" class="feedback">
+				<p id="ai-feedback-text">
+					Reviewing your performance...
 				</p>
 			</div>
 
-			<div id="game-screen" class="hidden space-y-12">
-				<div
-					id="lyrics-display"
-					class="text-4xl md:text-5xl leading-relaxed font-bold tracking-normal break-words transition-all duration-300"
-				></div>
-
-				<div
-					id="status-bar"
-					class="flex justify-between items-center text-slate-500 font-mono text-lg md:text-xl max-w-3xl mx-auto border-t border-slate-800 pt-4"
-				>
-					<span id="char-indicator">Awaiting input...</span>
-					<span>\ to finish</span>
-				</div>
-			</div>
-
-			<div id="results-screen" class="hidden space-y-8 py-10">
-				<h2 class="text-5xl font-black text-green-400 uppercase">Results</h2>
-
-				<div class="flex flex-wrap justify-center gap-4">
-					<div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 w-40 md:w-48">
-						<p class="text-slate-400 text-xs uppercase tracking-widest mb-2">Speed</p>
-						<p id="wpm-val" class="text-3xl md:text-4xl font-black">0 Commitment per Minute</p>
-					</div>
-
-					<div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 w-40 md:w-48">
-						<p class="text-slate-400 text-xs uppercase tracking-widest mb-2">AccuRickcy</p>
-						<p id="accuracy-val" class="text-3xl md:text-4xl font-black">0%</p>
-					</div>
-				</div>
-
-				<div id="ai-feedback-container" class="bg-slate-800/80 p-6 rounded-2xl border border-sky-500/30 max-w-2xl mx-auto text-left">
-					<p id="ai-feedback-text" class="text-slate-300 italic">
-						Reviewing your performance...
-					</p>
-				</div>
-
-				<button
-					onclick="location.reload()"
-					class="bg-sky-600 hover:bg-sky-500 text-white px-12 py-4 rounded-full text-xl font-black transition-all transform hover:scale-105"
-				>
-					RESTART
-				</button>
-			</div>
-		</div>
-
-		<script src="scripts/rollWithIt.js"></script>
+			<button type="button" onclick="location.reload()" class="restart-button">
+				Restart
+			</button>
+		</section>
 	</main>
+
+	<script src="scripts/rollWithIt.js"></script>
 </body>
 </html>
