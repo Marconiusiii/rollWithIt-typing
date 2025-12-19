@@ -191,6 +191,10 @@ function render() {
 }
 
 async function promptChar() {
+	if (!lines[currentLineIndex]) {
+	return;
+}
+
 	const char = lines[currentLineIndex][currentCharIndex];
 	const p =
 		punctuationMap[char] ||
