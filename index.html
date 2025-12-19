@@ -21,7 +21,7 @@
 			</p>
 
 			<div class="instructions">
-<h2>Instructions</h2>
+			<h2>Instructions</h2>
 				<p class="instructions-lead">
 					Accessible edition: Uses your local system voice synthesis.
 				</p>
@@ -43,7 +43,7 @@
 			</div>
 		</div>
 
-		<section id="game-screen" class="game-screen hidden">
+		<section id="game-screen" class="game-screen hidden inert">
 			<input
 				type="text"
 				id="keyboard-capture"
@@ -64,26 +64,21 @@
 			</div>
 		</section>
 
-		<section id="results-screen" class="results-screen hidden">
-			<h2>Results</h2>
+		<section id="results-screen" class="results-screen hidden" inert>
+			<h2 tabindex="-1" id="resultsHeading">Results</h2>
 
 			<div class="results-metrics">
-				<div class="metric">
+				<div class="metric" role="text">
 					<p class="metric-label">Commitments per Minute</p>
 					<p id="wpm-val" class="metric-value">0</p>
 				</div>
 
-				<div class="metric">
+				<div class="metric" role="text">
 					<p class="metric-label">AccuRickcy</p>
 					<p id="accuracy-val" class="metric-value">0%</p>
 				</div>
 			</div>
 
-			<div id="ai-feedback-container" class="feedback">
-				<p id="ai-feedback-text">
-					Reviewing your performance...
-				</p>
-			</div>
 
 			<button type="button" onclick="location.reload()" class="restart-button">
 				Restart
