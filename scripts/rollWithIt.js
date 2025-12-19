@@ -42,12 +42,17 @@ function ensureFocus() {
 }
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
+	const footer = document.getElementById('footer');
+
 	const gameScreen = document.getElementById('game-screen');
 	const resultsScreen = document.getElementById('results-screen');
 
 	if (targetState === 'MENU') {
 		appHeader.classList.remove('hidden');
 		appHeader.removeAttribute('inert');
+		footer.classList.remove('hidden');
+footer.removeAttribute('inert');
+
 
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
@@ -59,6 +64,9 @@ function setScreenState(targetState) {
 	if (targetState === 'PLAYING') {
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
+		footer.classList.add('hidden');
+		footer.setAttribute('inert', '');
+
 
 		gameScreen.classList.remove('hidden');
 		gameScreen.removeAttribute('inert');
@@ -70,6 +78,9 @@ function setScreenState(targetState) {
 	if (targetState === 'RESULTS') {
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
+		footer.classList.add('hidden');
+		footer.setAttribute('inert', '');
+
 
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
