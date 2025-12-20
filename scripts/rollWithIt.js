@@ -35,11 +35,7 @@ const punctuationMap = {
 	" ": "space"
 };
 
-function ensureFocus() {
-	if (gameState === 'PLAYING') {
-		captureInput.focus();
-	}
-}
+/* ---------- State management ---------- */
 
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
@@ -49,6 +45,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'MENU') {
 		document.title = 'Roll with It Typing';
+
 		appHeader.classList.remove('hidden');
 		appHeader.removeAttribute('inert');
 
@@ -64,6 +61,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'PLAYING') {
 		document.title = 'Roll with It Typing';
+
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -79,6 +77,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'RESULTS') {
 		document.title = 'Roll with It Typing Results';
+
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -93,41 +92,7 @@ function setScreenState(targetState) {
 	}
 }
 
-/* --- GAME START --- */
-
-function startTypingLesson() {
-	if (gameState !== 'MENU') {
-		return;
-	}
-
-	if (!lyricsText.trim()) {
-		speak("No typing lesson content is available yet.");
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	lines = lyricsText.split('\n').filter(l => l.trim());
-
-	currentLineIndex = 0;
-	currentCharIndex = 0;
-	totalKeystrokes = 0;
-	errors = 0;
-	typingStartTime = null;
-	totalTypingTime = 0;
-
-	gameState = 'PLAYING';
-
-	setScreenState('PLAYING');
-
-	captureInput.focus();
-	render();
-	promptChar();
-}
-
-/* --- SPEECH --- */
+/* ---------- Speech ---------- */
 
 function speak(text) {
 	return new Promise((resolve) => {
@@ -139,16 +104,12 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(text);
 		const voices = window.speechSynthesis.getVoices();
-		const enVoice =
-			voices.find(v => v.lang.includes('en') && v.name.includes('Samantha')) ||
-			voices[0];
+		const voice =
+			voices.find(v => v.lang.startsWith('en')) || voices[0];
 
-		if (enVoice) {
-			utterance.voice = enVoice;
+		if (voice) {
+			utterance.voice = voice;
 		}
-
-		utterance.rate = 1.0;
-		utterance.pitch = 1.0;
 
 		utterance.onend = () => {
 			isSpeaking = false;
@@ -182,7 +143,39 @@ function playBeep() {
 	osc.stop(audioCtx.currentTime + 0.1);
 }
 
-/* --- RENDERING --- */
+/* ---------- Game start ---------- */
+
+function startTypingLesson() {
+	if (gameState !== 'MENU') {
+		return;
+	}
+
+	if (!lyricsText.trim()) {
+		speak("No typing lesson content is available yet.");
+		return;
+	}
+
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	lines = lyricsText.split('\n').filter(l => l.trim());
+
+	currentLineIndex = 0;
+	currentCharIndex = 0;
+	totalKeystrokes = 0;
+	errors = 0;
+	typingStartTime = null;
+	totalTypingTime = 0;
+
+	gameState = 'PLAYING';
+	setScreenState('PLAYING');
+
+	render();
+	promptChar();
+}
+
+/* ---------- Rendering ---------- */
 
 function render() {
 	const container = document.getElementById('lyrics-display');
@@ -205,11 +198,9 @@ function render() {
 	}
 
 	if (currentCharIndex === line.length) {
-		container.appendChild(
-			Object.assign(document.createElement('span'), {
-				className: 'cursor'
-			})
-		);
+		const cursor = document.createElement('span');
+		cursor.className = 'cursor';
+		container.appendChild(cursor);
 	}
 }
 
@@ -226,10 +217,10 @@ async function promptChar() {
 			: char);
 
 	document.getElementById('char-indicator').textContent = `Type: ${spoken}`;
-	speak(spoken);
+	await speak(spoken);
 }
 
-/* --- INPUT HANDLING --- */
+/* ---------- Input handling ---------- */
 
 async function processKey(key) {
 	if (gameState !== 'PLAYING') {
@@ -286,10 +277,9 @@ async function processKey(key) {
 }
 
 captureInput.addEventListener('input', (e) => {
-	const val = captureInput.value;
-
-	if (val.length > 0) {
-		const char = val.slice(-1);
+	const value = captureInput.value;
+	if (value.length > 0) {
+		const char = value.slice(-1);
 		captureInput.value = '';
 		processKey(char);
 	}
@@ -302,11 +292,10 @@ captureInput.addEventListener('keydown', (e) => {
 	}
 });
 
-/* --- RESULTS --- */
+/* ---------- Results ---------- */
 
 function finishGame() {
 	gameState = 'RESULTS';
-
 	setScreenState('RESULTS');
 
 	const resultsHeading = document.getElementById('resultsHeading');
@@ -321,30 +310,35 @@ function finishGame() {
 		wpm = Math.round((correctKeystrokes / 5) / mins);
 	}
 
-	const wpmNote = document.getElementById('wpmNote');
-
-	if (totalTypingTime === 0 || correctKeystrokes === 0) {
-		wpmNote.textContent =
-			'Never gonna give you a Commitment score. You didn’t type long enough for us to measure it.';
-			wpmNote.classList.remove('hidden');
-		} else {
-			wpmNote.textContent = '';
-			wpmNote.classList.add('hidden');
-	}
-
 	const acc = Math.round(
 		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
 	) || 0;
 
 	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
+
+	const wpmNote = document.getElementById('wpmNote');
+
+	if (totalTypingTime === 0 || correctKeystrokes === 0) {
+		wpmNote.textContent =
+			'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
+		wpmNote.classList.remove('hidden');
+	} else {
+		wpmNote.textContent = '';
+		wpmNote.classList.add('hidden');
+	}
 }
 
-/* --- BUTTON WIRING --- */
+/* ---------- Button wiring ---------- */
 
 document
 	.getElementById('startLessonButton')
-	.addEventListener('click', startTypingLesson);
+	.addEventListener('click', () => {
+		startTypingLesson();
+
+		// iOS Safari requires synchronous focus from a user gesture
+		captureInput.focus();
+	});
 
 document
 	.getElementById('exitLessonButton')
@@ -354,7 +348,7 @@ document
 		}
 	});
 
-/* --- FOOTER YEAR --- */
+/* ---------- Footer year ---------- */
 
 const yearEl = document.getElementById('copyrightYear');
 
