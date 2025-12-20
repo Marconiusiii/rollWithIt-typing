@@ -1,3 +1,7 @@
+/* =========================
+	Global state
+========================= */
+
 let lyricsText = `We're no strangers to love
 You know the rules and so do I
 A full commitment's what I'm thinkin' of
@@ -32,6 +36,10 @@ const captureSurface = document.getElementById('keyboard-capture');
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+/* =========================
+	Speech helpers
+========================= */
+
 const punctuationMap = {
 	"'": "apostrophe",
 	",": "comma",
@@ -41,6 +49,81 @@ const punctuationMap = {
 	"?": "question mark",
 	" ": "space"
 };
+
+function speak(text) {
+	return new Promise((resolve) => {
+		if (isSpeaking) {
+			window.speechSynthesis.cancel();
+		}
+
+		isSpeaking = true;
+
+		const utterance = new SpeechSynthesisUtterance(text);
+		const voices = window.speechSynthesis.getVoices();
+		const voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+
+		if (voice) {
+			utterance.voice = voice;
+		}
+
+		utterance.onend = () => {
+			isSpeaking = false;
+			resolve();
+		};
+
+		utterance.onerror = () => {
+			isSpeaking = false;
+			resolve();
+		};
+
+		window.speechSynthesis.speak(utterance);
+	});
+}
+
+function speakTypedCharacter(char) {
+	const spoken =
+		punctuationMap[char] ||
+		(char === char.toUpperCase() && char !== char.toLowerCase()
+			? `Capital ${char}`
+			: char);
+
+	speak(spoken);
+}
+
+async function speakLineOnce() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	await speak(line);
+}
+
+/* =========================
+	Audio feedback
+========================= */
+
+function playBeep() {
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	const osc = audioCtx.createOscillator();
+	const gain = audioCtx.createGain();
+
+	osc.connect(gain);
+	gain.connect(audioCtx.destination);
+
+	osc.frequency.value = 220;
+	gain.gain.value = 0.05;
+
+	osc.start();
+	osc.stop(audioCtx.currentTime + 0.1);
+}
+
+/* =========================
+	State management
+========================= */
 
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
@@ -97,75 +180,9 @@ function setScreenState(targetState) {
 	}
 }
 
-function speak(text) {
-	return new Promise((resolve) => {
-		if (isSpeaking) {
-			window.speechSynthesis.cancel();
-		}
-
-		isSpeaking = true;
-
-		const utterance = new SpeechSynthesisUtterance(text);
-		const voices = window.speechSynthesis.getVoices();
-		const voice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0];
-
-		if (voice) {
-			utterance.voice = voice;
-		}
-
-		utterance.onend = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		utterance.onerror = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		window.speechSynthesis.speak(utterance);
-	});
-}
-
-function getSpokenChar(char) {
-	return (
-		punctuationMap[char] ||
-		(char === char.toUpperCase() && char !== char.toLowerCase()
-			? `Capital ${char}`
-			: char)
-	);
-}
-
-function speakChar(char) {
-	speak(getSpokenChar(char));
-}
-
-async function speakLineOnce() {
-	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	await speak(line);
-}
-
-function playBeep() {
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const osc = audioCtx.createOscillator();
-	const gain = audioCtx.createGain();
-
-	osc.connect(gain);
-	gain.connect(audioCtx.destination);
-
-	osc.frequency.value = 220;
-	gain.gain.value = 0.05;
-
-	osc.start();
-	osc.stop(audioCtx.currentTime + 0.1);
-}
+/* =========================
+	Rendering
+========================= */
 
 function render() {
 	const container = document.getElementById('lyrics-display');
@@ -201,11 +218,11 @@ function render() {
 	}
 }
 
-function isWordEnd(line, index) {
-	if (!line) {
-		return false;
-	}
+/* =========================
+	Word boundary detection
+========================= */
 
+function isWordBoundary(line, index) {
 	if (index <= 0 || index > line.length) {
 		return false;
 	}
@@ -216,17 +233,9 @@ function isWordEnd(line, index) {
 	return prevChar !== ' ' && nextChar === ' ';
 }
 
-async function promptChar() {
-	if (!lines[currentLineIndex]) {
-		return;
-	}
-
-	const char = lines[currentLineIndex][currentCharIndex];
-	const spoken = getSpokenChar(char);
-
-	document.getElementById('char-indicator').textContent = `Type: ${spoken}`;
-	await speak(spoken);
-}
+/* =========================
+	Game start
+========================= */
 
 function startTypingLesson() {
 	if (!lyricsText.trim()) {
@@ -242,10 +251,8 @@ function startTypingLesson() {
 
 	currentLineIndex = 0;
 	currentCharIndex = 0;
-
 	totalKeystrokes = 0;
 	errors = 0;
-
 	typingStartTime = null;
 	totalTypingTime = 0;
 
@@ -258,6 +265,23 @@ function startTypingLesson() {
 	}
 }
 
+/* =========================
+	Guided prompt
+========================= */
+
+async function promptChar() {
+	if (!lines[currentLineIndex]) {
+		return;
+	}
+
+	const char = lines[currentLineIndex][currentCharIndex];
+	speakTypedCharacter(char);
+}
+
+/* =========================
+	Input handling
+========================= */
+
 async function handleCharacterInput(char) {
 	if (gameState !== 'PLAYING') {
 		return;
@@ -268,9 +292,7 @@ async function handleCharacterInput(char) {
 		return;
 	}
 
-	const line = lines[currentLineIndex];
-	const expected = line?.[currentCharIndex];
-
+	const expected = lines[currentLineIndex]?.[currentCharIndex];
 	if (expected === undefined) {
 		return;
 	}
@@ -279,80 +301,92 @@ async function handleCharacterInput(char) {
 		(char.toLowerCase() === expected.toLowerCase()) ||
 		(expected === ' ' && char === ' ');
 
-	totalKeystrokes++;
+	if (matches) {
+		if (currentCharIndex === 0 && typingStartTime === null) {
+			typingStartTime = Date.now();
+		}
 
-	if (!matches) {
+		totalKeystrokes++;
+		currentCharIndex++;
+
+		if (typingMode === 'sentence') {
+			const line = lines[currentLineIndex];
+
+			if (
+				sentenceSpeechMode === 'characters' ||
+				sentenceSpeechMode === 'both'
+			) {
+				speakTypedCharacter(char);
+			}
+
+			if (
+				(sentenceSpeechMode === 'words' ||
+					sentenceSpeechMode === 'both') &&
+				isWordBoundary(line, currentCharIndex)
+			) {
+				const words = line.slice(0, currentCharIndex).trim().split(/\s+/);
+				const lastWord = words[words.length - 1];
+				if (lastWord) {
+					speak(lastWord);
+				}
+			}
+		}
+
+		if (currentCharIndex >= lines[currentLineIndex].length) {
+
+			if (typingStartTime !== null) {
+				totalTypingTime += Date.now() - typingStartTime;
+				typingStartTime = null;
+			}
+
+			render();
+
+			const completedText = lines[currentLineIndex];
+			currentLineIndex++;
+			currentCharIndex = 0;
+
+			if (typingMode === 'sentence') {
+				await speak("Phrase complete!");
+			} else {
+				await speak(`Phrase complete: ${completedText}`);
+			}
+
+			if (currentLineIndex >= lines.length) {
+				finishGame();
+			} else {
+				render();
+
+				if (typingMode === 'guided') {
+					promptChar();
+				} else {
+					speakLineOnce();
+				}
+			}
+		} else {
+			render();
+
+			if (typingMode === 'guided') {
+				promptChar();
+			}
+		}
+	} else {
+		totalKeystrokes++;
 		errors++;
 		playBeep();
 
 		if (typingMode === 'guided') {
 			promptChar();
 		} else {
-			speakChar(expected);
+			speakTypedCharacter(expected);
 		}
-
-		return;
-	}
-
-	if (currentCharIndex === 0 && typingStartTime === null) {
-		typingStartTime = Date.now();
-	}
-
-	currentCharIndex++;
-
-	if (typingMode === 'sentence') {
-		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
-			speakChar(char);
-		}
-
-		if ((sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') && isWordEnd(line, currentCharIndex)) {
-			const words = line.slice(0, currentCharIndex).trim().split(/\s+/);
-			const lastWord = words[words.length - 1];
-			if (lastWord) {
-				speak(lastWord);
-			}
-		}
-	}
-
-	if (currentCharIndex >= line.length) {
-		if (typingStartTime !== null) {
-			totalTypingTime += Date.now() - typingStartTime;
-			typingStartTime = null;
-		}
-
-		render();
-
-		const completedText = line;
-
-		currentLineIndex++;
-		currentCharIndex = 0;
-
-		await speak(`Phrase complete: ${completedText}`);
-
-		if (currentLineIndex >= lines.length) {
-			finishGame();
-			return;
-		}
-
-		render();
-
-		if (typingMode === 'guided') {
-			promptChar();
-		} else {
-			speakLineOnce();
-		}
-
-		return;
-	}
-
-	render();
-
-	if (typingMode === 'guided') {
-		promptChar();
 	}
 }
 
-function handleBeforeInput(e) {
+/* =========================
+	Keyboard capture
+========================= */
+
+activatorInput.addEventListener('beforeinput', (e) => {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -364,9 +398,9 @@ function handleBeforeInput(e) {
 			handleCharacterInput(ch);
 		}
 	}
-}
+});
 
-function handleKeyDown(e) {
+activatorInput.addEventListener('keydown', (e) => {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -381,102 +415,80 @@ function handleKeyDown(e) {
 		e.preventDefault();
 		handleCharacterInput(e.key);
 	}
-}
+});
 
-function getRadioVal(name) {
-	const checked = document.querySelector(`input[name="${name}"]:checked`);
-	return checked ? checked.value : null;
-}
+/* =========================
+	Typing mode settings
+========================= */
 
-function syncTypingMode() {
-	const val = getRadioVal('typingMode');
-	if (val === 'guided' || val === 'sentence') {
-		typingMode = val;
-	}
-}
+const typingModeGuided = document.getElementById('typingModeGuided');
+const typingModeSentence = document.getElementById('typingModeSentence');
+const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
 
-function syncSentenceSpeech() {
-	const val = getRadioVal('sentenceSpeechMode');
-	if (val === 'characters' || val === 'words' || val === 'both' || val === 'errors') {
-		sentenceSpeechMode = val;
-	}
-}
+if (typingModeGuided && typingModeSentence && sentenceSpeechOptions) {
 
-function updateSentenceOpts() {
-	const fieldset = document.getElementById('sentenceSpeechOptions');
-	if (!fieldset) {
-		return;
-	}
-
-	const enable = typingMode === 'sentence';
-	fieldset.disabled = !enable;
-
-	const hint = document.getElementById('sentenceOptionsHint');
-	if (hint) {
-		if (enable) {
-			hint.classList.add('hidden');
-		} else {
-			hint.classList.remove('hidden');
+	typingModeGuided.addEventListener('change', () => {
+		if (typingModeGuided.checked) {
+			typingMode = 'guided';
+			sentenceSpeechOptions.disabled = true;
 		}
+	});
+
+	typingModeSentence.addEventListener('change', () => {
+		if (typingModeSentence.checked) {
+			typingMode = 'sentence';
+			sentenceSpeechOptions.disabled = false;
+		}
+	});
+}
+
+/* =========================
+	Sentence speech settings
+========================= */
+
+const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
+const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+
+function updateSentenceSpeechMode() {
+	if (sentenceSpeechChars && sentenceSpeechChars.checked) {
+		sentenceSpeechMode = 'characters';
+	}
+	if (sentenceSpeechWords && sentenceSpeechWords.checked) {
+		sentenceSpeechMode = 'words';
+	}
+	if (sentenceSpeechBoth && sentenceSpeechBoth.checked) {
+		sentenceSpeechMode = 'both';
+	}
+	if (sentenceSpeechErrors && sentenceSpeechErrors.checked) {
+		sentenceSpeechMode = 'errors';
 	}
 }
 
-function wireTypingSettings() {
-	const typingModeGuided = document.getElementById('typingModeGuided');
-	const typingModeSentence = document.getElementById('typingModeSentence');
-
-	if (typingModeGuided) {
-		typingModeGuided.addEventListener('change', () => {
-			syncTypingMode();
-			updateSentenceOpts();
-		});
-	}
-
-	if (typingModeSentence) {
-		typingModeSentence.addEventListener('change', () => {
-			syncTypingMode();
-			updateSentenceOpts();
-		});
-	}
-
-	const speechHandler = () => {
-		syncSentenceSpeech();
-	};
-
-	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
-	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-
-	if (sentenceSpeechChars) {
-		sentenceSpeechChars.addEventListener('change', speechHandler);
-	}
-
-	if (sentenceSpeechWords) {
-		sentenceSpeechWords.addEventListener('change', speechHandler);
-	}
-
-	if (sentenceSpeechBoth) {
-		sentenceSpeechBoth.addEventListener('change', speechHandler);
-	}
-
-	if (sentenceSpeechErrors) {
-		sentenceSpeechErrors.addEventListener('change', speechHandler);
-	}
-
-	syncTypingMode();
-	syncSentenceSpeech();
-	updateSentenceOpts();
+if (sentenceSpeechChars) {
+	sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
 }
+if (sentenceSpeechWords) {
+	sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
+}
+if (sentenceSpeechBoth) {
+	sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
+}
+if (sentenceSpeechErrors) {
+	sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
+}
+
+/* =========================
+	Results
+========================= */
 
 function finishGame() {
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
 
 	const resultsHeading = document.getElementById('resultsHeading');
-	if (resultsHeading) {
-		resultsHeading.focus();
-	}
+	resultsHeading.focus();
 
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
@@ -491,91 +503,58 @@ function finishGame() {
 		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
 	) || 0;
 
-	const wpmVal = document.getElementById('wpm-val');
-	const accVal = document.getElementById('accuracy-val');
-
-	if (wpmVal) {
-		wpmVal.textContent = `${wpm}`;
-	}
-
-	if (accVal) {
-		accVal.textContent = `${acc}%`;
-	}
+	document.getElementById('wpm-val').textContent = `${wpm}`;
+	document.getElementById('accuracy-val').textContent = `${acc}%`;
 
 	const wpmNote = document.getElementById('wpmNote');
 
-	if (wpmNote) {
-		if (totalTypingTime === 0 || correctKeystrokes === 0) {
-			wpmNote.textContent = 'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
-			wpmNote.classList.remove('hidden');
-		} else {
-			wpmNote.textContent = '';
-			wpmNote.classList.add('hidden');
+	if (totalTypingTime === 0 || correctKeystrokes === 0) {
+		wpmNote.textContent =
+			'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
+		wpmNote.classList.remove('hidden');
+	} else {
+		wpmNote.textContent = '';
+		wpmNote.classList.add('hidden');
+	}
+}
+
+/* =========================
+	Buttons
+========================= */
+
+document
+	.getElementById('startLessonButton')
+	.addEventListener('click', () => {
+		if (gameState !== 'MENU') {
+			return;
 		}
-	}
+
+		gameState = 'PLAYING';
+		setScreenState('PLAYING');
+
+		try {
+			activatorInput.focus({ preventScroll: true });
+		} catch {
+			activatorInput.focus();
+		}
+
+		startTypingLesson();
+	});
+
+document
+	.getElementById('exitLessonButton')
+	.addEventListener('click', () => {
+		if (gameState === 'PLAYING') {
+			finishGame();
+		}
+	});
+
+/* =========================
+	Footer year
+========================= */
+
+const yearEl = document.getElementById('copyrightYear');
+
+if (yearEl) {
+	yearEl.textContent = new Date().getFullYear();
 }
-
-function startBtnHandler() {
-	if (gameState !== 'MENU') {
-		return;
-	}
-
-	gameState = 'PLAYING';
-	setScreenState('PLAYING');
-
-	try {
-		activatorInput.focus({ preventScroll: true });
-	} catch {
-		activatorInput.focus();
-	}
-
-	startTypingLesson();
-}
-
-function exitBtnHandler() {
-	if (gameState === 'PLAYING') {
-		finishGame();
-	}
-}
-
-function initFooterYear() {
-	const yearEl = document.getElementById('copyrightYear');
-	if (yearEl) {
-		yearEl.textContent = new Date().getFullYear();
-	}
-}
-
-function initInputHooks() {
-	if (captureSurface) {
-		captureSurface.setAttribute('tabindex', '-1');
-	}
-
-	if (!activatorInput) {
-		return;
-	}
-
-	activatorInput.addEventListener('beforeinput', handleBeforeInput);
-	activatorInput.addEventListener('keydown', handleKeyDown);
-}
-
-function initButtons() {
-	const startLessonButton = document.getElementById('startLessonButton');
-	const exitLessonButton = document.getElementById('exitLessonButton');
-
-	if (startLessonButton) {
-		startLessonButton.addEventListener('click', startBtnHandler);
-	}
-
-	if (exitLessonButton) {
-		exitLessonButton.addEventListener('click', exitBtnHandler);
-	}
-}
-
-function init() {
-	wireTypingSettings();
-	initInputHooks();
-	initButtons();
-	initFooterYear();
-}
-
-init();
