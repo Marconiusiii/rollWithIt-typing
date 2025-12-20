@@ -1,15 +1,4 @@
-let lyricsText = `We're no strangers to love
-You know the rules and so do I
-A full commitment's what I'm thinkin' of
-You wouldn't get this from any other guy
-I just wanna tell you how I'm feeling
-Gotta make you understand
-Never gonna give you up
-Never gonna let you down
-Never gonna run around and desert you
-Never gonna make you cry
-Never gonna say goodbye
-Never gonna tell a lie and hurt you`;
+let lyricsText = ``;
 
 let lines = [];
 let currentLineIndex = 0;
@@ -270,6 +259,30 @@ if (contentModeOriginal && contentModeCustom && customContentFieldset) {
 		}
 	});
 }
+const customContentInput = document.getElementById('customContentInput');
+const MAX_CUSTOM_LINES = 40;
+
+function enforceLineLimit(textarea) {
+	if (!textarea) {
+		return;
+	}
+
+	const raw = textarea.value.replace(/\r\n?/g, '\n');
+	const lines = raw.split('\n');
+
+	if (lines.length <= MAX_CUSTOM_LINES) {
+		return;
+	}
+
+	textarea.value = lines.slice(0, MAX_CUSTOM_LINES).join('\n');
+}
+
+if (customContentInput) {
+	customContentInput.addEventListener('input', () => {
+		enforceLineLimit(customContentInput);
+	});
+}
+
 
 function sanitizeText(rawText) {
 	if (!rawText) {
@@ -577,6 +590,19 @@ function finishGame() {
 		resultsHeading.focus();
 	}
 
+	const wpmLabel = document.getElementById('wpmLabel');
+	const accLabel = document.getElementById('accuracyLabel');
+	if (contentMode === 'original') {
+		if (wpmLabel) {
+			wpmLabel.textContent = "Commitments per Minute: ";
+		}
+		if (accLabel) {
+			accLabel.textContent = "AccuRickcy: ";
+		}
+	} else {
+			wpmLabel.textContent = "WPM: ";
+			accLabel.textContent = "Accuracy: ";
+		}
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
 	let wpm = 0;
@@ -613,6 +639,21 @@ function finishGame() {
 		}
 	}
 }
+
+const closeResultsButton = document.getElementById('closeResultsButton');
+
+if (closeResultsButton) {
+	closeResultsButton.addEventListener('click', () => {
+		if (gameState !== 'RESULTS') {
+			return;
+		}
+
+		gameState = 'MENU';
+		setScreenState('MENU');
+		startLessonButton.focus();
+	});
+}
+
 
 function startBtnHandler() {
 	if (gameState !== 'MENU') {

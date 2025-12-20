@@ -249,12 +249,12 @@
 
 			<div class="results-metrics">
 				<div class="metric" role="text">
-					<p class="metric-label">Commitments per Minute</p>
+					<p class="metric-label" id="wpmLabel">Commitments per Minute</p>
 					<p id="wpm-val" class="metric-value">0</p>
 				</div>
 
 				<div class="metric" role="text">
-					<p class="metric-label">AccuRickcy</p>
+					<p class="metric-label" id="accuracyLabel">AccuRickcy</p>
 					<p id="accuracy-val" class="metric-value">0%</p>
 				</div>
 			</div>
@@ -265,8 +265,8 @@
 
 			<button
 				type="button"
-				onclick="location.reload()"
 				class="restart-button"
+				id="closeResultsButton"
 			>
 				Close Results
 			</button>
