@@ -1,7 +1,3 @@
-/* =========================
-	Global state
-========================= */
-
 let lyricsText = `We're no strangers to love
 You know the rules and so do I
 A full commitment's what I'm thinkin' of
@@ -29,16 +25,13 @@ let errors = 0;
 let typingStartTime = null;
 let totalTypingTime = 0;
 
-let isSpeaking = false;
-
 const activatorInput = document.getElementById('keyboard-activator');
 const captureSurface = document.getElementById('keyboard-capture');
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let isSpeaking = false;
 
-/* =========================
-	Speech helpers
-========================= */
+let speakChain = Promise.resolve();
 
 const punctuationMap = {
 	"'": "apostrophe",
@@ -50,80 +43,14 @@ const punctuationMap = {
 	" ": "space"
 };
 
-function speak(text) {
-	return new Promise((resolve) => {
-		if (isSpeaking) {
-			window.speechSynthesis.cancel();
-		}
-
-		isSpeaking = true;
-
-		const utterance = new SpeechSynthesisUtterance(text);
-		const voices = window.speechSynthesis.getVoices();
-		const voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-
-		if (voice) {
-			utterance.voice = voice;
-		}
-
-		utterance.onend = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		utterance.onerror = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		window.speechSynthesis.speak(utterance);
-	});
+function queueSpeak(text) {
+	speakChain = speakChain.then(() => speak(text));
+	return speakChain;
 }
 
-function speakTypedCharacter(char) {
-	const spoken =
-		punctuationMap[char] ||
-		(char === char.toUpperCase() && char !== char.toLowerCase()
-			? `Capital ${char}`
-			: char);
-
-	speak(spoken);
+function resetSpeakQueue() {
+	speakChain = Promise.resolve();
 }
-
-async function speakLineOnce() {
-	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	await speak(line);
-}
-
-/* =========================
-	Audio feedback
-========================= */
-
-function playBeep() {
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const osc = audioCtx.createOscillator();
-	const gain = audioCtx.createGain();
-
-	osc.connect(gain);
-	gain.connect(audioCtx.destination);
-
-	osc.frequency.value = 220;
-	gain.gain.value = 0.05;
-
-	osc.start();
-	osc.stop(audioCtx.currentTime + 0.1);
-}
-
-/* =========================
-	State management
-========================= */
 
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
@@ -180,9 +107,66 @@ function setScreenState(targetState) {
 	}
 }
 
-/* =========================
-	Rendering
-========================= */
+function speak(text) {
+	return new Promise((resolve) => {
+		if (isSpeaking) {
+			window.speechSynthesis.cancel();
+		}
+
+		isSpeaking = true;
+
+		const utterance = new SpeechSynthesisUtterance(text);
+		const voices = window.speechSynthesis.getVoices();
+		const voice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0];
+
+		if (voice) {
+			utterance.voice = voice;
+		}
+
+		utterance.onend = () => {
+			isSpeaking = false;
+			resolve();
+		};
+
+		utterance.onerror = () => {
+			isSpeaking = false;
+			resolve();
+		};
+
+		window.speechSynthesis.speak(utterance);
+	});
+}
+
+function getSpokenChar(char) {
+	return (
+		punctuationMap[char] ||
+		(char === char.toUpperCase() && char !== char.toLowerCase()
+			? `Capital ${char}`
+			: char)
+	);
+}
+
+function speakChar(char) {
+	return speak(getSpokenChar(char));
+}
+
+function playBeep() {
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	const osc = audioCtx.createOscillator();
+	const gain = audioCtx.createGain();
+
+	osc.connect(gain);
+	gain.connect(audioCtx.destination);
+
+	osc.frequency.value = 220;
+	gain.gain.value = 0.05;
+
+	osc.start();
+	osc.stop(audioCtx.currentTime + 0.1);
+}
 
 function render() {
 	const container = document.getElementById('lyrics-display');
@@ -195,12 +179,7 @@ function render() {
 
 	for (let i = 0; i < line.length; i++) {
 		const span = document.createElement('span');
-
-		if (line[i] === ' ') {
-			span.textContent = '\u00A0';
-		} else {
-			span.textContent = line[i];
-		}
+		span.textContent = line[i] === ' ' ? '\u00A0' : line[i];
 
 		if (i < currentCharIndex) {
 			span.className = 'correct';
@@ -210,36 +189,69 @@ function render() {
 
 		container.appendChild(span);
 	}
-
-	if (currentCharIndex === line.length) {
-		const cursor = document.createElement('span');
-		cursor.className = 'cursor';
-		container.appendChild(cursor);
-	}
 }
 
-/* =========================
-	Word boundary detection
-========================= */
-
-function isWordBoundary(line, index) {
-	if (index <= 0 || index > line.length) {
+function isWordEnd(line, index) {
+	if (!line) {
 		return false;
 	}
 
-	const prevChar = line[index - 1];
-	const nextChar = line[index] || ' ';
+	if (index <= 0) {
+		return false;
+	}
 
-	return prevChar !== ' ' && nextChar === ' ';
+	if (index >= line.length) {
+		return line[line.length - 1] !== ' ';
+	}
+
+	return line[index - 1] !== ' ' && line[index] === ' ';
 }
 
-/* =========================
-	Game start
-========================= */
+function getLastWord(line, endIndex) {
+	const part = line.slice(0, endIndex).trim();
+	if (!part) {
+		return '';
+	}
+
+	const words = part.split(/\s+/);
+	return words[words.length - 1] || '';
+}
+
+async function speakLineOnce() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	const indicator = document.getElementById('char-indicator');
+	if (indicator) {
+		indicator.textContent = 'Type the phrase';
+	}
+
+	resetSpeakQueue();
+	await speak(line);
+}
+
+async function promptChar() {
+	if (!lines[currentLineIndex]) {
+		return;
+	}
+
+	const char = lines[currentLineIndex][currentCharIndex];
+	const spoken = getSpokenChar(char);
+
+	const indicator = document.getElementById('char-indicator');
+	if (indicator) {
+		indicator.textContent = `Type: ${spoken}`;
+	}
+
+	resetSpeakQueue();
+	await speak(spoken);
+}
 
 function startTypingLesson() {
 	if (!lyricsText.trim()) {
-		speak("No typing lesson content is available yet.");
+		speak('No typing lesson content is available yet.');
 		return;
 	}
 
@@ -251,8 +263,10 @@ function startTypingLesson() {
 
 	currentLineIndex = 0;
 	currentCharIndex = 0;
+
 	totalKeystrokes = 0;
 	errors = 0;
+
 	typingStartTime = null;
 	totalTypingTime = 0;
 
@@ -265,22 +279,28 @@ function startTypingLesson() {
 	}
 }
 
-/* =========================
-	Guided prompt
-========================= */
+async function handleLineDone(lineDoneText) {
+	if (typingMode === 'sentence') {
+		await speakChain;
+		await speak('Phrase complete');
+	} else {
+		resetSpeakQueue();
+		await speak(`Phrase complete: ${lineDoneText}`);
+	}
 
-async function promptChar() {
-	if (!lines[currentLineIndex]) {
+	if (currentLineIndex >= lines.length) {
+		finishGame();
 		return;
 	}
 
-	const char = lines[currentLineIndex][currentCharIndex];
-	speakTypedCharacter(char);
-}
+	render();
 
-/* =========================
-	Input handling
-========================= */
+	if (typingMode === 'guided') {
+		promptChar();
+	} else {
+		speakLineOnce();
+	}
+}
 
 async function handleCharacterInput(char) {
 	if (gameState !== 'PLAYING') {
@@ -292,7 +312,9 @@ async function handleCharacterInput(char) {
 		return;
 	}
 
-	const expected = lines[currentLineIndex]?.[currentCharIndex];
+	const line = lines[currentLineIndex];
+	const expected = line?.[currentCharIndex];
+
 	if (expected === undefined) {
 		return;
 	}
@@ -301,92 +323,66 @@ async function handleCharacterInput(char) {
 		(char.toLowerCase() === expected.toLowerCase()) ||
 		(expected === ' ' && char === ' ');
 
-	if (matches) {
-		if (currentCharIndex === 0 && typingStartTime === null) {
-			typingStartTime = Date.now();
-		}
+	totalKeystrokes++;
 
-		totalKeystrokes++;
-		currentCharIndex++;
-
-		if (typingMode === 'sentence') {
-			const line = lines[currentLineIndex];
-
-			if (
-				sentenceSpeechMode === 'characters' ||
-				sentenceSpeechMode === 'both'
-			) {
-				speakTypedCharacter(char);
-			}
-
-			if (
-				(sentenceSpeechMode === 'words' ||
-					sentenceSpeechMode === 'both') &&
-				isWordBoundary(line, currentCharIndex)
-			) {
-				const words = line.slice(0, currentCharIndex).trim().split(/\s+/);
-				const lastWord = words[words.length - 1];
-				if (lastWord) {
-					speak(lastWord);
-				}
-			}
-		}
-
-		if (currentCharIndex >= lines[currentLineIndex].length) {
-
-			if (typingStartTime !== null) {
-				totalTypingTime += Date.now() - typingStartTime;
-				typingStartTime = null;
-			}
-
-			render();
-
-			const completedText = lines[currentLineIndex];
-			currentLineIndex++;
-			currentCharIndex = 0;
-
-			if (typingMode === 'sentence') {
-				await speak("Phrase complete!");
-			} else {
-				await speak(`Phrase complete: ${completedText}`);
-			}
-
-			if (currentLineIndex >= lines.length) {
-				finishGame();
-			} else {
-				render();
-
-				if (typingMode === 'guided') {
-					promptChar();
-				} else {
-					speakLineOnce();
-				}
-			}
-		} else {
-			render();
-
-			if (typingMode === 'guided') {
-				promptChar();
-			}
-		}
-	} else {
-		totalKeystrokes++;
+	if (!matches) {
 		errors++;
 		playBeep();
 
 		if (typingMode === 'guided') {
 			promptChar();
 		} else {
-			speakTypedCharacter(expected);
+			resetSpeakQueue();
+			await speakChar(expected);
 		}
+
+		return;
+	}
+
+	if (currentCharIndex === 0 && typingStartTime === null) {
+		typingStartTime = Date.now();
+	}
+
+	currentCharIndex++;
+
+	if (typingMode === 'sentence') {
+		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
+			queueSpeak(getSpokenChar(char));
+		}
+
+		if (sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') {
+			if (isWordEnd(line, currentCharIndex)) {
+				const lastWord = getLastWord(line, currentCharIndex);
+				if (lastWord) {
+					queueSpeak(lastWord);
+				}
+			}
+		}
+	}
+
+	if (currentCharIndex >= line.length) {
+		if (typingStartTime !== null) {
+			totalTypingTime += Date.now() - typingStartTime;
+			typingStartTime = null;
+		}
+
+		const lineDoneText = line;
+
+		currentLineIndex++;
+		currentCharIndex = 0;
+
+		await handleLineDone(lineDoneText);
+		return;
+	}
+
+	render();
+
+	if (typingMode === 'guided') {
+		promptChar();
 	}
 }
 
-/* =========================
-	Keyboard capture
-========================= */
-
-activatorInput.addEventListener('beforeinput', (e) => {
+function handleBeforeInput(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -398,9 +394,9 @@ activatorInput.addEventListener('beforeinput', (e) => {
 			handleCharacterInput(ch);
 		}
 	}
-});
+}
 
-activatorInput.addEventListener('keydown', (e) => {
+function handleKeyDown(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -415,43 +411,14 @@ activatorInput.addEventListener('keydown', (e) => {
 		e.preventDefault();
 		handleCharacterInput(e.key);
 	}
-});
-
-/* =========================
-	Typing mode settings
-========================= */
-
-const typingModeGuided = document.getElementById('typingModeGuided');
-const typingModeSentence = document.getElementById('typingModeSentence');
-const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
-
-if (typingModeGuided && typingModeSentence && sentenceSpeechOptions) {
-
-	typingModeGuided.addEventListener('change', () => {
-		if (typingModeGuided.checked) {
-			typingMode = 'guided';
-			sentenceSpeechOptions.disabled = true;
-		}
-	});
-
-	typingModeSentence.addEventListener('change', () => {
-		if (typingModeSentence.checked) {
-			typingMode = 'sentence';
-			sentenceSpeechOptions.disabled = false;
-		}
-	});
 }
 
-/* =========================
-	Sentence speech settings
-========================= */
-
-const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
-const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-
 function updateSentenceSpeechMode() {
+	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
+	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+
 	if (sentenceSpeechChars && sentenceSpeechChars.checked) {
 		sentenceSpeechMode = 'characters';
 	}
@@ -466,29 +433,78 @@ function updateSentenceSpeechMode() {
 	}
 }
 
-if (sentenceSpeechChars) {
-	sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechWords) {
-	sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechBoth) {
-	sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechErrors) {
-	sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
+function updateSentenceOpts() {
+	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
+	const optionsHint = document.getElementById('sentenceOptionsHint');
+
+	if (!sentenceSpeechOptions) {
+		return;
+	}
+
+	const enable = typingMode === 'sentence';
+	sentenceSpeechOptions.disabled = !enable;
+
+	if (optionsHint) {
+		if (enable) {
+			optionsHint.textContent = '';
+		} else if (!optionsHint.textContent) {
+			optionsHint.textContent = 'These options are available when Sentence-first mode is selected.';
+		}
+	}
 }
 
-/* =========================
-	Results
-========================= */
+function initTypingSettings() {
+	const typingModeGuided = document.getElementById('typingModeGuided');
+	const typingModeSentence = document.getElementById('typingModeSentence');
+
+	if (typingModeGuided) {
+		typingModeGuided.addEventListener('change', () => {
+			if (typingModeGuided.checked) {
+				typingMode = 'guided';
+				updateSentenceOpts();
+			}
+		});
+	}
+
+	if (typingModeSentence) {
+		typingModeSentence.addEventListener('change', () => {
+			if (typingModeSentence.checked) {
+				typingMode = 'sentence';
+				updateSentenceOpts();
+			}
+		});
+	}
+
+	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
+	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+
+	if (sentenceSpeechChars) {
+		sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
+	}
+	if (sentenceSpeechWords) {
+		sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
+	}
+	if (sentenceSpeechBoth) {
+		sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
+	}
+	if (sentenceSpeechErrors) {
+		sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
+	}
+
+	updateSentenceSpeechMode();
+	updateSentenceOpts();
+}
 
 function finishGame() {
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
 
 	const resultsHeading = document.getElementById('resultsHeading');
-	resultsHeading.focus();
+	if (resultsHeading) {
+		resultsHeading.focus();
+	}
 
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
@@ -503,58 +519,91 @@ function finishGame() {
 		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
 	) || 0;
 
-	document.getElementById('wpm-val').textContent = `${wpm}`;
-	document.getElementById('accuracy-val').textContent = `${acc}%`;
+	const wpmVal = document.getElementById('wpm-val');
+	const accVal = document.getElementById('accuracy-val');
+
+	if (wpmVal) {
+		wpmVal.textContent = `${wpm}`;
+	}
+
+	if (accVal) {
+		accVal.textContent = `${acc}%`;
+	}
 
 	const wpmNote = document.getElementById('wpmNote');
 
-	if (totalTypingTime === 0 || correctKeystrokes === 0) {
-		wpmNote.textContent =
-			'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
-		wpmNote.classList.remove('hidden');
-	} else {
-		wpmNote.textContent = '';
-		wpmNote.classList.add('hidden');
+	if (wpmNote) {
+		if (totalTypingTime === 0 || correctKeystrokes === 0) {
+			wpmNote.textContent = 'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
+			wpmNote.classList.remove('hidden');
+		} else {
+			wpmNote.textContent = '';
+			wpmNote.classList.add('hidden');
+		}
 	}
 }
 
-/* =========================
-	Buttons
-========================= */
+function startBtnHandler() {
+	if (gameState !== 'MENU') {
+		return;
+	}
 
-document
-	.getElementById('startLessonButton')
-	.addEventListener('click', () => {
-		if (gameState !== 'MENU') {
-			return;
-		}
+	gameState = 'PLAYING';
+	setScreenState('PLAYING');
 
-		gameState = 'PLAYING';
-		setScreenState('PLAYING');
+	try {
+		activatorInput.focus({ preventScroll: true });
+	} catch {
+		activatorInput.focus();
+	}
 
-		try {
-			activatorInput.focus({ preventScroll: true });
-		} catch {
-			activatorInput.focus();
-		}
-
-		startTypingLesson();
-	});
-
-document
-	.getElementById('exitLessonButton')
-	.addEventListener('click', () => {
-		if (gameState === 'PLAYING') {
-			finishGame();
-		}
-	});
-
-/* =========================
-	Footer year
-========================= */
-
-const yearEl = document.getElementById('copyrightYear');
-
-if (yearEl) {
-	yearEl.textContent = new Date().getFullYear();
+	startTypingLesson();
 }
+
+function exitBtnHandler() {
+	if (gameState === 'PLAYING') {
+		finishGame();
+	}
+}
+
+function initFooterYear() {
+	const yearEl = document.getElementById('copyrightYear');
+	if (yearEl) {
+		yearEl.textContent = new Date().getFullYear();
+	}
+}
+
+function initInputHooks() {
+	if (captureSurface) {
+		captureSurface.setAttribute('tabindex', '-1');
+	}
+
+	if (!activatorInput) {
+		return;
+	}
+
+	activatorInput.addEventListener('beforeinput', handleBeforeInput);
+	activatorInput.addEventListener('keydown', handleKeyDown);
+}
+
+function initButtons() {
+	const startLessonButton = document.getElementById('startLessonButton');
+	const exitLessonButton = document.getElementById('exitLessonButton');
+
+	if (startLessonButton) {
+		startLessonButton.addEventListener('click', startBtnHandler);
+	}
+
+	if (exitLessonButton) {
+		exitLessonButton.addEventListener('click', exitBtnHandler);
+	}
+}
+
+function init() {
+	initTypingSettings();
+	initInputHooks();
+	initButtons();
+	initFooterYear();
+}
+
+init();
