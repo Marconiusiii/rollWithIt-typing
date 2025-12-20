@@ -34,6 +34,101 @@
 					<li>Check out your speed and accuracy results after exiting.</li>
 				</ul>
 
+				<details class="game-settings">
+	<summary>Typing settings</summary>
+
+	<fieldset>
+		<legend>Typing mode</legend>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="typingMode"
+				id="typingModeGuided"
+				value="guided"
+				checked
+			>
+			<label for="typingModeGuided">
+				Guided mode (letter by letter)
+			</label>
+		</div>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="typingMode"
+				id="typingModeSentence"
+				value="sentence"
+			>
+			<label for="typingModeSentence">
+				Sentence-first mode (type freely)
+			</label>
+		</div>
+	</fieldset>
+
+	<fieldset
+		id="sentenceSpeechOptions"
+		aria-describedby="sentenceOptionsHint"
+		disabled
+	>
+		<legend>Sentence mode speech feedback</legend>
+
+		<p id="sentenceOptionsHint">
+			These options are available when Sentence-first mode is selected.
+		</p>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="sentenceSpeechMode"
+				id="sentenceSpeechChars"
+				value="characters"
+			>
+			<label for="sentenceSpeechChars">
+				Speak each character as it is typed
+			</label>
+		</div>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="sentenceSpeechMode"
+				id="sentenceSpeechWords"
+				value="words"
+			>
+			<label for="sentenceSpeechWords">
+				Speak each word when completed
+			</label>
+		</div>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="sentenceSpeechMode"
+				id="sentenceSpeechBoth"
+				value="both"
+			>
+			<label for="sentenceSpeechBoth">
+				Speak characters and completed words
+			</label>
+		</div>
+
+		<div class="setting-row">
+			<input
+				type="radio"
+				name="sentenceSpeechMode"
+				id="sentenceSpeechErrors"
+				value="errors"
+				checked
+			>
+			<label for="sentenceSpeechErrors">
+				Speak errors only
+			</label>
+		</div>
+	</fieldset>
+</details>
+
+
 				<button
 					id="startLessonButton"
 					type="button"
