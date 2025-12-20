@@ -10,6 +10,9 @@ let errors = 0;
 let typingStartTime = null;
 let totalTypingTime = 0;
 
+let typingMode = 'guided';
+let sentenceSpeechMode = 'errors';
+
 const activatorInput = document.getElementById('keyboard-activator');
 const captureSurface = document.getElementById('keyboard-capture');
 
@@ -339,6 +342,63 @@ function finishGame() {
 		wpmNote.classList.add('hidden');
 	}
 }
+
+const typingModeGuided = document.getElementById('typingModeGuided');
+const typingModeSentence = document.getElementById('typingModeSentence');
+const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
+
+if (typingModeGuided && typingModeSentence && sentenceSpeechOptions) {
+
+	typingModeGuided.addEventListener('change', () => {
+		if (typingModeGuided.checked) {
+			typingMode = 'guided';
+			sentenceSpeechOptions.disabled = true;
+			document.getElementById('sentenceOptionsHint').textContent = "These options are available when Sentence-first mode is selected.";
+		}
+	});
+
+	typingModeSentence.addEventListener('change', () => {
+		if (typingModeSentence.checked) {
+			typingMode = 'sentence';
+			sentenceSpeechOptions.disabled = false;
+			document.getElementById('sentenceOptionsHint').textContent = "";
+		}
+	});
+}
+
+const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
+const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+
+function updateSentenceSpeechMode() {
+	if (sentenceSpeechChars && sentenceSpeechChars.checked) {
+		sentenceSpeechMode = 'characters';
+	}
+	if (sentenceSpeechWords && sentenceSpeechWords.checked) {
+		sentenceSpeechMode = 'words';
+	}
+	if (sentenceSpeechBoth && sentenceSpeechBoth.checked) {
+		sentenceSpeechMode = 'both';
+	}
+	if (sentenceSpeechErrors && sentenceSpeechErrors.checked) {
+		sentenceSpeechMode = 'errors';
+	}
+}
+
+if (sentenceSpeechChars) {
+	sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
+}
+if (sentenceSpeechWords) {
+	sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
+}
+if (sentenceSpeechBoth) {
+	sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
+}
+if (sentenceSpeechErrors) {
+	sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
+}
+
 
 document
 	.getElementById('startLessonButton')
