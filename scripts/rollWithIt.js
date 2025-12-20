@@ -21,7 +21,9 @@ let errors = 0;
 let typingStartTime = null;
 let totalTypingTime = 0;
 
-const captureInput = document.getElementById('keyboard-capture');
+const captureSurface = document.getElementById('keyboard-capture');
+const activatorInput = document.getElementById('keyboard-activator');
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let isSpeaking = false;
 
@@ -84,7 +86,7 @@ function setScreenState(targetState) {
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
 
-		resultsScreen.classList.remove('hidden');
+		resultsScreen.classListList.remove('hidden');
 		resultsScreen.removeAttribute('inert');
 
 		footer.classList.add('hidden');
@@ -146,10 +148,6 @@ function playBeep() {
 /* ---------- Game start ---------- */
 
 function startTypingLesson() {
-	if (gameState !== 'MENU') {
-		return;
-	}
-
 	if (!lyricsText.trim()) {
 		speak("No typing lesson content is available yet.");
 		return;
@@ -167,9 +165,6 @@ function startTypingLesson() {
 	errors = 0;
 	typingStartTime = null;
 	totalTypingTime = 0;
-
-	gameState = 'PLAYING';
-	setScreenState('PLAYING');
 
 	render();
 	promptChar();
@@ -220,21 +215,25 @@ async function promptChar() {
 	await speak(spoken);
 }
 
-/* ---------- Input handling ---------- */
+/* ---------- Gameplay input ---------- */
 
-async function processKey(key) {
+function handleCharacterInput(char) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
 
-	if (key === '\\') {
+	if (char === '\\') {
 		finishGame();
 		return;
 	}
 
 	const expected = lines[currentLineIndex][currentCharIndex];
 
-	if (key.toLowerCase() === expected.toLowerCase() || (expected === ' ' && key === ' ')) {
+	if (!expected) {
+		return;
+	}
+
+	if (char.toLowerCase() === expected.toLowerCase()) {
 
 		if (currentCharIndex === 0 && typingStartTime === null) {
 			typingStartTime = Date.now();
@@ -256,14 +255,14 @@ async function processKey(key) {
 			currentLineIndex++;
 			currentCharIndex = 0;
 
-			await speak(`Phrase complete: ${completedText}`);
-
-			if (currentLineIndex >= lines.length) {
-				finishGame();
-			} else {
-				render();
-				promptChar();
-			}
+			speak(`Phrase complete: ${completedText}`).then(() => {
+				if (currentLineIndex >= lines.length) {
+					finishGame();
+				} else {
+					render();
+					promptChar();
+				}
+			});
 		} else {
 			render();
 			promptChar();
@@ -276,19 +275,36 @@ async function processKey(key) {
 	}
 }
 
-captureInput.addEventListener('input', (e) => {
-	const value = captureInput.value;
-	if (value.length > 0) {
-		const char = value.slice(-1);
-		captureInput.value = '';
-		processKey(char);
+/* ---------- Keyboard routing ---------- */
+
+/*
+	Keyboard activator:
+	Used ONLY to open the iOS keyboard.
+	We never read or mutate its value.
+*/
+activatorInput.addEventListener('keydown', (e) => {
+	if (gameState !== 'PLAYING') {
+		return;
+	}
+
+	if (e.key.length === 1 || e.key === '\\') {
+		e.preventDefault();
+		handleCharacterInput(e.key);
 	}
 });
 
-captureInput.addEventListener('keydown', (e) => {
-	if (e.key === '\\') {
+/*
+	Keyboard capture surface:
+	Primary gameplay input for SR + BSI users.
+*/
+captureSurface.addEventListener('keydown', (e) => {
+	if (gameState !== 'PLAYING') {
+		return;
+	}
+
+	if (e.key.length === 1 || e.key === '\\') {
 		e.preventDefault();
-		processKey(e.key);
+		handleCharacterInput(e.key);
 	}
 });
 
@@ -329,15 +345,26 @@ function finishGame() {
 	}
 }
 
-/* ---------- Button wiring ---------- */
+/* ---------- Buttons ---------- */
 
 document
 	.getElementById('startLessonButton')
 	.addEventListener('click', () => {
-		startTypingLesson();
 
-		// iOS Safari requires synchronous focus from a user gesture
-		captureInput.focus();
+		if (gameState !== 'MENU') {
+			return;
+		}
+
+		gameState = 'PLAYING';
+		setScreenState('PLAYING');
+
+		// Sighted users: open keyboard
+		activatorInput.focus({ preventScroll: true });
+
+		// SR + BSI users: ensure capture surface remains usable
+		captureSurface.focus({ preventScroll: true });
+
+		startTypingLesson();
 	});
 
 document

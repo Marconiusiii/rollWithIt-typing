@@ -50,19 +50,36 @@
 				class="typing-display"
 			></div>
 
-			<label for="keyboard-capture" class="typing-input-label">
+			<!--
+				Keyboard activator input
+				Used only to summon the on-screen keyboard for sighted users on iOS.
+				Not used for gameplay input.
+			-->
+			<label for="keyboard-activator" class="typing-input-label">
 				Type here
 			</label>
 
 			<input
 				type="text"
-				id="keyboard-capture"
+				id="keyboard-activator"
 				class="typing-input"
 				autocomplete="off"
 				autocorrect="off"
 				autocapitalize="off"
 				spellcheck="false"
+				aria-hidden="true"
+				tabindex="-1"
 			>
+
+			<!--
+				Keyboard capture surface
+				Receives key events for gameplay.
+				Non-editable, no value mutation.
+			-->
+			<div
+				id="keyboard-capture"
+				tabindex="0"
+			></div>
 
 			<div id="status-bar" class="status-bar">
 				<span id="char-indicator">Awaiting input...</span>
@@ -93,7 +110,9 @@
 				</div>
 			</div>
 
-			<p id="wpmNote" class="results-note hidden"></p>
+			<div role="alert">
+				<p id="wpmNote" class="results-note hidden"></p>
+			</div>
 
 			<button
 				type="button"
