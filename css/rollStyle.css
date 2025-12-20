@@ -312,3 +312,6 @@ body {
 .footer-copy.muted {
 	color: #64748b;
 }
+.has-error {
+	border-color: #c62828;
+}

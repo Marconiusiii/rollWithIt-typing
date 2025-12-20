@@ -279,8 +279,42 @@ function enforceLineLimit(textarea) {
 
 if (customContentInput) {
 	customContentInput.addEventListener('input', () => {
+		if (customContentInput) {
+	customContentInput.addEventListener('input', () => {
+		enforceLineLimit(customContentInput);
+		clearCustomContentError();
+	});
+}
+
 		enforceLineLimit(customContentInput);
 	});
+}
+
+function clearCustomContentError() {
+	const input = document.getElementById('customContentInput');
+	const error = document.getElementById('customContentError');
+
+	if (input) {
+		input.classList.remove('has-error');
+	}
+
+	if (error) {
+		error.classList.add('hidden');
+	}
+}
+
+function showCustomContentError() {
+	const input = document.getElementById('customContentInput');
+	const error = document.getElementById('customContentError');
+
+	if (input) {
+		input.classList.add('has-error');
+		input.focus();
+	}
+
+	if (error) {
+		error.classList.remove('hidden');
+	}
 }
 
 
@@ -656,6 +690,25 @@ if (closeResultsButton) {
 
 
 function startBtnHandler() {
+	if (contentMode === 'custom') {
+	const input = document.getElementById('customContentInput');
+	const rawText = input ? input.value : '';
+
+	const cleanText = sanitizeText(rawText);
+	const customLines = buildLinesFromText(cleanText);
+
+	if (customLines.length === 0) {
+		showCustomContentError();
+		return;
+	}
+
+	lyricsText = customLines.join('\n');
+} else {
+	clearCustomContentError();
+}
+
+startTypingLesson();
+
 	if (gameState !== 'MENU') {
 		return;
 	}
