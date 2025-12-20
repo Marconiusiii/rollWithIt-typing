@@ -18,6 +18,7 @@ let currentCharIndex = 0;
 let gameState = 'MENU';
 let typingMode = 'guided';
 let sentenceSpeechMode = 'errors';
+let contentMode = 'original';
 
 let totalKeystrokes = 0;
 let errors = 0;
@@ -249,7 +250,77 @@ async function promptChar() {
 	await speak(spoken);
 }
 
+const contentModeOriginal = document.getElementById('contentModeOriginal');
+const contentModeCustom = document.getElementById('contentModeCustom');
+const customContentFieldset = document.getElementById('customContentFieldset');
+
+if (contentModeOriginal && contentModeCustom && customContentFieldset) {
+
+	contentModeOriginal.addEventListener('change', () => {
+		if (contentModeOriginal.checked) {
+			contentMode = 'original';
+			customContentFieldset.disabled = true;
+		}
+	});
+
+	contentModeCustom.addEventListener('change', () => {
+		if (contentModeCustom.checked) {
+			contentMode = 'custom';
+			customContentFieldset.disabled = false;
+		}
+	});
+}
+
+function sanitizeText(rawText) {
+	if (!rawText) {
+		return '';
+	}
+
+	let text = rawText;
+
+	text = text.replace(/<[^>]*>/g, '');
+	text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
+	text = text.replace(/\r\n?/g, '\n');
+
+	return text.trim();
+}
+
+function buildLinesFromText(text) {
+	if (!text) {
+		return [];
+	}
+
+	let lines = [];
+
+	if (text.includes('\n')) {
+		lines = text.split('\n');
+	} else {
+		lines = text.split(/(?<=[.!?])\s+/);
+	}
+
+	lines = lines
+		.map(line => line.trim())
+		.filter(line => line.length > 0);
+
+	return lines.slice(0, 40);
+}
+
 function startTypingLesson() {
+	if (contentMode === 'custom') {
+	const customInput = document.getElementById('customContentInput');
+	const rawText = customInput ? customInput.value : '';
+
+	const cleanText = sanitizeText(rawText);
+	const customLines = buildLinesFromText(cleanText);
+
+	if (customLines.length === 0) {
+		speak('No usable custom content was provided.');
+		return;
+	}
+
+	lyricsText = customLines.join('\n');
+}
+
 	if (!lyricsText.trim()) {
 		speak('No typing lesson content is available yet.');
 		return;
