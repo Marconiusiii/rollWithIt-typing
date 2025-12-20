@@ -44,6 +44,8 @@ const punctuationMap = {
 	" ": "space"
 };
 
+const MAX_CUSTOM_LINES = 40;
+
 function queueSpeak(text) {
 	speakChain = speakChain.then(() => speak(text));
 	return speakChain;
@@ -224,54 +226,53 @@ async function speakLineOnce() {
 		return;
 	}
 
-	const indicator = document.getElementById('char-indicator');
-	if (indicator) {
-		indicator.textContent = 'Type the phrase';
-	}
-
 	resetSpeakQueue();
 	await speak(line);
 }
 
 async function promptChar() {
-	if (!lines[currentLineIndex]) {
+	const line = lines[currentLineIndex];
+	if (!line) {
 		return;
 	}
 
-	const char = lines[currentLineIndex][currentCharIndex];
-	const spoken = getSpokenChar(char);
+	const char = line[currentCharIndex];
+	resetSpeakQueue();
+	await speak(getSpokenChar(char));
+}
 
-	const indicator = document.getElementById('char-indicator');
-	if (indicator) {
-		indicator.textContent = `Type: ${spoken}`;
+function sanitizeText(rawText) {
+	if (!rawText) {
+		return '';
 	}
 
-	resetSpeakQueue();
-	await speak(spoken);
+	let text = rawText;
+	text = text.replace(/<[^>]*>/g, '');
+	text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
+	text = text.replace(/\r\n?/g, '\n');
+
+	return text.trim();
 }
 
-const contentModeOriginal = document.getElementById('contentModeOriginal');
-const contentModeCustom = document.getElementById('contentModeCustom');
-const customContentFieldset = document.getElementById('customContentFieldset');
+function buildLinesFromText(text) {
+	if (!text) {
+		return [];
+	}
 
-if (contentModeOriginal && contentModeCustom && customContentFieldset) {
+	let linesArr = [];
 
-	contentModeOriginal.addEventListener('change', () => {
-		if (contentModeOriginal.checked) {
-			contentMode = 'original';
-			customContentFieldset.disabled = true;
-		}
-	});
+	if (text.includes('\n')) {
+		linesArr = text.split('\n');
+	} else {
+		linesArr = text.split(/(?<=[.!?])\s+/);
+	}
 
-	contentModeCustom.addEventListener('change', () => {
-		if (contentModeCustom.checked) {
-			contentMode = 'custom';
-			customContentFieldset.disabled = false;
-		}
-	});
+	linesArr = linesArr
+		.map(line => line.trim())
+		.filter(line => line.length > 0);
+
+	return linesArr.slice(0, MAX_CUSTOM_LINES);
 }
-const customContentInput = document.getElementById('customContentInput');
-const MAX_CUSTOM_LINES = 40;
 
 function enforceLineLimit(textarea) {
 	if (!textarea) {
@@ -279,26 +280,13 @@ function enforceLineLimit(textarea) {
 	}
 
 	const raw = textarea.value.replace(/\r\n?/g, '\n');
-	const lines = raw.split('\n');
+	const linesArr = raw.split('\n');
 
-	if (lines.length <= MAX_CUSTOM_LINES) {
+	if (linesArr.length <= MAX_CUSTOM_LINES) {
 		return;
 	}
 
-	textarea.value = lines.slice(0, MAX_CUSTOM_LINES).join('\n');
-}
-
-if (customContentInput) {
-	customContentInput.addEventListener('input', () => {
-		if (customContentInput) {
-	customContentInput.addEventListener('input', () => {
-		enforceLineLimit(customContentInput);
-		clearCustomContentError();
-	});
-}
-
-		enforceLineLimit(customContentInput);
-	});
+	textarea.value = linesArr.slice(0, MAX_CUSTOM_LINES).join('\n');
 }
 
 function clearCustomContentError() {
@@ -328,57 +316,7 @@ function showCustomContentError() {
 	}
 }
 
-
-function sanitizeText(rawText) {
-	if (!rawText) {
-		return '';
-	}
-
-	let text = rawText;
-
-	text = text.replace(/<[^>]*>/g, '');
-	text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
-	text = text.replace(/\r\n?/g, '\n');
-
-	return text.trim();
-}
-
-function buildLinesFromText(text) {
-	if (!text) {
-		return [];
-	}
-
-	let lines = [];
-
-	if (text.includes('\n')) {
-		lines = text.split('\n');
-	} else {
-		lines = text.split(/(?<=[.!?])\s+/);
-	}
-
-	lines = lines
-		.map(line => line.trim())
-		.filter(line => line.length > 0);
-
-	return lines.slice(0, 40);
-}
-
 function startTypingLesson() {
-	if (contentMode === 'custom') {
-	const customInput = document.getElementById('customContentInput');
-	const rawText = customInput ? customInput.value : '';
-
-	const cleanText = sanitizeText(rawText);
-	const customLines = buildLinesFromText(cleanText);
-
-	if (customLines.length === 0) {
-		speak('No usable custom content was provided.');
-		return;
-	}
-
-	lyricsText = customLines.join('\n');
-}
-
 	if (!lyricsText.trim()) {
 		speak('No typing lesson content is available yet.');
 		return;
@@ -542,90 +480,6 @@ function handleKeyDown(e) {
 	}
 }
 
-function updateSentenceSpeechMode() {
-	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
-	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-
-	if (sentenceSpeechChars && sentenceSpeechChars.checked) {
-		sentenceSpeechMode = 'characters';
-	}
-	if (sentenceSpeechWords && sentenceSpeechWords.checked) {
-		sentenceSpeechMode = 'words';
-	}
-	if (sentenceSpeechBoth && sentenceSpeechBoth.checked) {
-		sentenceSpeechMode = 'both';
-	}
-	if (sentenceSpeechErrors && sentenceSpeechErrors.checked) {
-		sentenceSpeechMode = 'errors';
-	}
-}
-
-function updateSentenceOpts() {
-	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
-	const optionsHint = document.getElementById('sentenceOptionsHint');
-
-	if (!sentenceSpeechOptions) {
-		return;
-	}
-
-	const enable = typingMode === 'sentence';
-	sentenceSpeechOptions.disabled = !enable;
-
-	if (optionsHint) {
-		if (enable) {
-			optionsHint.textContent = '';
-		} else if (!optionsHint.textContent) {
-			optionsHint.textContent = 'These options are available when Sentence-first mode is selected.';
-		}
-	}
-}
-
-function initTypingSettings() {
-	const typingModeGuided = document.getElementById('typingModeGuided');
-	const typingModeSentence = document.getElementById('typingModeSentence');
-
-	if (typingModeGuided) {
-		typingModeGuided.addEventListener('change', () => {
-			if (typingModeGuided.checked) {
-				typingMode = 'guided';
-				updateSentenceOpts();
-			}
-		});
-	}
-
-	if (typingModeSentence) {
-		typingModeSentence.addEventListener('change', () => {
-			if (typingModeSentence.checked) {
-				typingMode = 'sentence';
-				updateSentenceOpts();
-			}
-		});
-	}
-
-	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
-	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-
-	if (sentenceSpeechChars) {
-		sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
-	}
-	if (sentenceSpeechWords) {
-		sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
-	}
-	if (sentenceSpeechBoth) {
-		sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
-	}
-	if (sentenceSpeechErrors) {
-		sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
-	}
-
-	updateSentenceSpeechMode();
-	updateSentenceOpts();
-}
-
 function finishGame() {
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
@@ -634,9 +488,8 @@ function finishGame() {
 	if (resultsHeading) {
 		resultsHeading.focus();
 	}
-
-	const wpmLabel = document.getElementById('wpmLabel');
-	const accLabel = document.getElementById('accuracyLabel');
+	let wpmLabel = document.getElementById('wpmLabel');
+	let accLabel = document.getElementById('accuracyLabel');
 	if (contentMode === 'original') {
 		if (wpmLabel) {
 			wpmLabel.textContent = "Commitments per Minute: ";
@@ -645,9 +498,13 @@ function finishGame() {
 			accLabel.textContent = "AccuRickcy: ";
 		}
 	} else {
+		if (wpmLabel) {
 			wpmLabel.textContent = "WPM: ";
-			accLabel.textContent = "Accuracy: ";
 		}
+		if (accLabel) {
+		accLabel.textContent = "Accuracy: ";
+		}
+	}
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
 	let wpm = 0;
@@ -685,43 +542,26 @@ function finishGame() {
 	}
 }
 
-const closeResultsButton = document.getElementById('closeResultsButton');
-
-if (closeResultsButton) {
-	closeResultsButton.addEventListener('click', () => {
-		if (gameState !== 'RESULTS') {
-			return;
-		}
-
-		gameState = 'MENU';
-		setScreenState('MENU');
-		startLessonButton.focus();
-	});
-}
-
-
 function startBtnHandler() {
-	if (contentMode === 'custom') {
-	const input = document.getElementById('customContentInput');
-	const rawText = input ? input.value : '';
-
-	const cleanText = sanitizeText(rawText);
-	const customLines = buildLinesFromText(cleanText);
-
-	if (customLines.length === 0) {
-		showCustomContentError();
+	if (gameState !== 'MENU') {
 		return;
 	}
 
-	lyricsText = customLines.join('\n');
-} else {
-	clearCustomContentError();
-}
+	if (contentMode === 'custom') {
+		const input = document.getElementById('customContentInput');
+		const rawText = input ? input.value : '';
 
-startTypingLesson();
+		const cleanText = sanitizeText(rawText);
+		const customLines = buildLinesFromText(cleanText);
 
-	if (gameState !== 'MENU') {
-		return;
+		if (customLines.length === 0) {
+			showCustomContentError();
+			return;
+		}
+
+		lyricsText = customLines.join('\n');
+	} else {
+		clearCustomContentError();
 	}
 
 	gameState = 'PLAYING';
@@ -765,6 +605,7 @@ function initInputHooks() {
 function initButtons() {
 	const startLessonButton = document.getElementById('startLessonButton');
 	const exitLessonButton = document.getElementById('exitLessonButton');
+	const closeResultsButton = document.getElementById('closeResultsButton');
 
 	if (startLessonButton) {
 		startLessonButton.addEventListener('click', startBtnHandler);
@@ -772,6 +613,69 @@ function initButtons() {
 
 	if (exitLessonButton) {
 		exitLessonButton.addEventListener('click', exitBtnHandler);
+	}
+
+	if (closeResultsButton) {
+		closeResultsButton.addEventListener('click', () => {
+			if (gameState !== 'RESULTS') {
+				return;
+			}
+
+			gameState = 'MENU';
+			setScreenState('MENU');
+			document.getElementById('startLessonButton')?.focus();
+		});
+	}
+}
+
+function initTypingSettings() {
+	const typingModeGuided = document.getElementById('typingModeGuided');
+	const typingModeSentence = document.getElementById('typingModeSentence');
+	const customContentInput = document.getElementById('customContentInput');
+
+	const contentModeOriginal = document.getElementById('contentModeOriginal');
+	const contentModeCustom = document.getElementById('contentModeCustom');
+	const customContentFieldset = document.getElementById('customContentFieldset');
+
+	if (typingModeGuided) {
+		typingModeGuided.addEventListener('change', () => {
+			if (typingModeGuided.checked) {
+				typingMode = 'guided';
+			}
+		});
+	}
+
+	if (typingModeSentence) {
+		typingModeSentence.addEventListener('change', () => {
+			if (typingModeSentence.checked) {
+				typingMode = 'sentence';
+			}
+		});
+	}
+
+	if (contentModeOriginal && customContentFieldset) {
+		contentModeOriginal.addEventListener('change', () => {
+			if (contentModeOriginal.checked) {
+				contentMode = 'original';
+				customContentFieldset.disabled = true;
+			}
+		});
+	}
+
+	if (contentModeCustom && customContentFieldset) {
+		contentModeCustom.addEventListener('change', () => {
+			if (contentModeCustom.checked) {
+				contentMode = 'custom';
+				customContentFieldset.disabled = false;
+			}
+		});
+	}
+
+	if (customContentInput) {
+		customContentInput.addEventListener('input', () => {
+			enforceLineLimit(customContentInput);
+			clearCustomContentError();
+		});
 	}
 }
 
