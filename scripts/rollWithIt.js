@@ -1,23 +1,36 @@
-let lyricsText = ``;
+let lyricsText = `We're no strangers to love
+You know the rules and so do I
+A full commitment's what I'm thinkin' of
+You wouldn't get this from any other guy
+I just wanna tell you how I'm feeling
+Gotta make you understand
+Never gonna give you up
+Never gonna let you down
+Never gonna run around and desert you
+Never gonna make you cry
+Never gonna say goodbye
+Never gonna tell a lie and hurt you`;
 
 let lines = [];
 let currentLineIndex = 0;
 let currentCharIndex = 0;
+
 let gameState = 'MENU';
+let typingMode = 'guided';
+let sentenceSpeechMode = 'errors';
+
 let totalKeystrokes = 0;
 let errors = 0;
 
 let typingStartTime = null;
 let totalTypingTime = 0;
 
-let typingMode = 'guided';
-let sentenceSpeechMode = 'errors';
+let isSpeaking = false;
 
 const activatorInput = document.getElementById('keyboard-activator');
 const captureSurface = document.getElementById('keyboard-capture');
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let isSpeaking = false;
 
 const punctuationMap = {
 	"'": "apostrophe",
@@ -94,7 +107,7 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(text);
 		const voices = window.speechSynthesis.getVoices();
-		const voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+		const voice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0];
 
 		if (voice) {
 			utterance.voice = voice;
@@ -112,6 +125,28 @@ function speak(text) {
 
 		window.speechSynthesis.speak(utterance);
 	});
+}
+
+function getSpokenChar(char) {
+	return (
+		punctuationMap[char] ||
+		(char === char.toUpperCase() && char !== char.toLowerCase()
+			? `Capital ${char}`
+			: char)
+	);
+}
+
+function speakChar(char) {
+	speak(getSpokenChar(char));
+}
+
+async function speakLineOnce() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	await speak(line);
 }
 
 function playBeep() {
@@ -132,35 +167,14 @@ function playBeep() {
 	osc.stop(audioCtx.currentTime + 0.1);
 }
 
-function startTypingLesson() {
-	if (!lyricsText.trim()) {
-		speak("No typing lesson content is available yet.");
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	lines = lyricsText.split(/\r?\n/).filter(l => l.trim().length > 0);
-
-	currentLineIndex = 0;
-	currentCharIndex = 0;
-	totalKeystrokes = 0;
-	errors = 0;
-	typingStartTime = null;
-	totalTypingTime = 0;
-
-	render();
-	promptChar();
-}
-
 function render() {
 	const container = document.getElementById('lyrics-display');
 	container.innerHTML = '';
 
 	const line = lines[currentLineIndex];
-	if (!line) return;
+	if (!line) {
+		return;
+	}
 
 	for (let i = 0; i < line.length; i++) {
 		const span = document.createElement('span');
@@ -187,20 +201,61 @@ function render() {
 	}
 }
 
+function isWordEnd(line, index) {
+	if (!line) {
+		return false;
+	}
+
+	if (index <= 0 || index > line.length) {
+		return false;
+	}
+
+	const prevChar = line[index - 1];
+	const nextChar = line[index] || ' ';
+
+	return prevChar !== ' ' && nextChar === ' ';
+}
+
 async function promptChar() {
 	if (!lines[currentLineIndex]) {
 		return;
 	}
 
 	const char = lines[currentLineIndex][currentCharIndex];
-	const spoken =
-		punctuationMap[char] ||
-		(char === char.toUpperCase() && char !== char.toLowerCase()
-			? `Capital ${char}`
-			: char);
+	const spoken = getSpokenChar(char);
 
 	document.getElementById('char-indicator').textContent = `Type: ${spoken}`;
 	await speak(spoken);
+}
+
+function startTypingLesson() {
+	if (!lyricsText.trim()) {
+		speak("No typing lesson content is available yet.");
+		return;
+	}
+
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	lines = lyricsText.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+	currentLineIndex = 0;
+	currentCharIndex = 0;
+
+	totalKeystrokes = 0;
+	errors = 0;
+
+	typingStartTime = null;
+	totalTypingTime = 0;
+
+	render();
+
+	if (typingMode === 'guided') {
+		promptChar();
+	} else {
+		speakLineOnce();
+	}
 }
 
 async function handleCharacterInput(char) {
@@ -213,7 +268,9 @@ async function handleCharacterInput(char) {
 		return;
 	}
 
-	const expected = lines[currentLineIndex]?.[currentCharIndex];
+	const line = lines[currentLineIndex];
+	const expected = line?.[currentCharIndex];
+
 	if (expected === undefined) {
 		return;
 	}
@@ -222,51 +279,80 @@ async function handleCharacterInput(char) {
 		(char.toLowerCase() === expected.toLowerCase()) ||
 		(expected === ' ' && char === ' ');
 
-	if (matches) {
-		if (currentCharIndex === 0 && typingStartTime === null) {
-			typingStartTime = Date.now();
-		}
+	totalKeystrokes++;
 
-		totalKeystrokes++;
-		currentCharIndex++;
-
-		if (currentCharIndex >= lines[currentLineIndex].length) {
-			if (typingStartTime !== null) {
-				totalTypingTime += Date.now() - typingStartTime;
-				typingStartTime = null;
-			}
-
-			render();
-
-			const completedText = lines[currentLineIndex];
-			currentLineIndex++;
-			currentCharIndex = 0;
-
-			await speak(`Phrase complete: ${completedText}`);
-
-			if (currentLineIndex >= lines.length) {
-				finishGame();
-			} else {
-				render();
-				promptChar();
-			}
-		} else {
-			render();
-			promptChar();
-		}
-	} else {
-		totalKeystrokes++;
+	if (!matches) {
 		errors++;
 		playBeep();
+
+		if (typingMode === 'guided') {
+			promptChar();
+		} else {
+			speakChar(expected);
+		}
+
+		return;
+	}
+
+	if (currentCharIndex === 0 && typingStartTime === null) {
+		typingStartTime = Date.now();
+	}
+
+	currentCharIndex++;
+
+	if (typingMode === 'sentence') {
+		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
+			speakChar(char);
+		}
+
+		if ((sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') && isWordEnd(line, currentCharIndex)) {
+			const words = line.slice(0, currentCharIndex).trim().split(/\s+/);
+			const lastWord = words[words.length - 1];
+			if (lastWord) {
+				speak(lastWord);
+			}
+		}
+	}
+
+	if (currentCharIndex >= line.length) {
+		if (typingStartTime !== null) {
+			totalTypingTime += Date.now() - typingStartTime;
+			typingStartTime = null;
+		}
+
+		render();
+
+		const completedText = line;
+
+		currentLineIndex++;
+		currentCharIndex = 0;
+
+		await speak(`Phrase complete: ${completedText}`);
+
+		if (currentLineIndex >= lines.length) {
+			finishGame();
+			return;
+		}
+
+		render();
+
+		if (typingMode === 'guided') {
+			promptChar();
+		} else {
+			speakLineOnce();
+		}
+
+		return;
+	}
+
+	render();
+
+	if (typingMode === 'guided') {
 		promptChar();
 	}
 }
 
-/*
-	iOS on-screen keyboard:
-	Use beforeinput and prevent edits, so no "delete haptic" loop.
-*/
-activatorInput.addEventListener('beforeinput', (e) => {
+function handleBeforeInput(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -278,12 +364,9 @@ activatorInput.addEventListener('beforeinput', (e) => {
 			handleCharacterInput(ch);
 		}
 	}
-});
+}
 
-/*
-	Hardware keyboards:
-*/
-activatorInput.addEventListener('keydown', (e) => {
+function handleKeyDown(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -298,14 +381,92 @@ activatorInput.addEventListener('keydown', (e) => {
 		e.preventDefault();
 		handleCharacterInput(e.key);
 	}
-});
+}
 
-/*
-	Do not allow the capture surface to become a VO focus trap.
-	It exists as a structural hook only.
-*/
-if (captureSurface) {
-	captureSurface.setAttribute('tabindex', '-1');
+function getRadioVal(name) {
+	const checked = document.querySelector(`input[name="${name}"]:checked`);
+	return checked ? checked.value : null;
+}
+
+function syncTypingMode() {
+	const val = getRadioVal('typingMode');
+	if (val === 'guided' || val === 'sentence') {
+		typingMode = val;
+	}
+}
+
+function syncSentenceSpeech() {
+	const val = getRadioVal('sentenceSpeechMode');
+	if (val === 'characters' || val === 'words' || val === 'both' || val === 'errors') {
+		sentenceSpeechMode = val;
+	}
+}
+
+function updateSentenceOpts() {
+	const fieldset = document.getElementById('sentenceSpeechOptions');
+	if (!fieldset) {
+		return;
+	}
+
+	const enable = typingMode === 'sentence';
+	fieldset.disabled = !enable;
+
+	const hint = document.getElementById('sentenceOptionsHint');
+	if (hint) {
+		if (enable) {
+			hint.classList.add('hidden');
+		} else {
+			hint.classList.remove('hidden');
+		}
+	}
+}
+
+function wireTypingSettings() {
+	const typingModeGuided = document.getElementById('typingModeGuided');
+	const typingModeSentence = document.getElementById('typingModeSentence');
+
+	if (typingModeGuided) {
+		typingModeGuided.addEventListener('change', () => {
+			syncTypingMode();
+			updateSentenceOpts();
+		});
+	}
+
+	if (typingModeSentence) {
+		typingModeSentence.addEventListener('change', () => {
+			syncTypingMode();
+			updateSentenceOpts();
+		});
+	}
+
+	const speechHandler = () => {
+		syncSentenceSpeech();
+	};
+
+	const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
+	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+
+	if (sentenceSpeechChars) {
+		sentenceSpeechChars.addEventListener('change', speechHandler);
+	}
+
+	if (sentenceSpeechWords) {
+		sentenceSpeechWords.addEventListener('change', speechHandler);
+	}
+
+	if (sentenceSpeechBoth) {
+		sentenceSpeechBoth.addEventListener('change', speechHandler);
+	}
+
+	if (sentenceSpeechErrors) {
+		sentenceSpeechErrors.addEventListener('change', speechHandler);
+	}
+
+	syncTypingMode();
+	syncSentenceSpeech();
+	updateSentenceOpts();
 }
 
 function finishGame() {
@@ -313,7 +474,9 @@ function finishGame() {
 	setScreenState('RESULTS');
 
 	const resultsHeading = document.getElementById('resultsHeading');
-	resultsHeading.focus();
+	if (resultsHeading) {
+		resultsHeading.focus();
+	}
 
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
@@ -328,107 +491,91 @@ function finishGame() {
 		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
 	) || 0;
 
-	document.getElementById('wpm-val').textContent = `${wpm}`;
-	document.getElementById('accuracy-val').textContent = `${acc}%`;
+	const wpmVal = document.getElementById('wpm-val');
+	const accVal = document.getElementById('accuracy-val');
+
+	if (wpmVal) {
+		wpmVal.textContent = `${wpm}`;
+	}
+
+	if (accVal) {
+		accVal.textContent = `${acc}%`;
+	}
 
 	const wpmNote = document.getElementById('wpmNote');
 
-	if (totalTypingTime === 0 || correctKeystrokes === 0) {
-		wpmNote.textContent =
-			'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
-		wpmNote.classList.remove('hidden');
-	} else {
-		wpmNote.textContent = '';
-		wpmNote.classList.add('hidden');
+	if (wpmNote) {
+		if (totalTypingTime === 0 || correctKeystrokes === 0) {
+			wpmNote.textContent = 'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
+			wpmNote.classList.remove('hidden');
+		} else {
+			wpmNote.textContent = '';
+			wpmNote.classList.add('hidden');
+		}
 	}
 }
 
-const typingModeGuided = document.getElementById('typingModeGuided');
-const typingModeSentence = document.getElementById('typingModeSentence');
-const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
+function startBtnHandler() {
+	if (gameState !== 'MENU') {
+		return;
+	}
 
-if (typingModeGuided && typingModeSentence && sentenceSpeechOptions) {
+	gameState = 'PLAYING';
+	setScreenState('PLAYING');
 
-	typingModeGuided.addEventListener('change', () => {
-		if (typingModeGuided.checked) {
-			typingMode = 'guided';
-			sentenceSpeechOptions.disabled = true;
-			document.getElementById('sentenceOptionsHint').textContent = "These options are available when Sentence-first mode is selected.";
-		}
-	});
+	try {
+		activatorInput.focus({ preventScroll: true });
+	} catch {
+		activatorInput.focus();
+	}
 
-	typingModeSentence.addEventListener('change', () => {
-		if (typingModeSentence.checked) {
-			typingMode = 'sentence';
-			sentenceSpeechOptions.disabled = false;
-			document.getElementById('sentenceOptionsHint').textContent = "";
-		}
-	});
+	startTypingLesson();
 }
 
-const sentenceSpeechChars = document.getElementById('sentenceSpeechChars');
-const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-
-function updateSentenceSpeechMode() {
-	if (sentenceSpeechChars && sentenceSpeechChars.checked) {
-		sentenceSpeechMode = 'characters';
-	}
-	if (sentenceSpeechWords && sentenceSpeechWords.checked) {
-		sentenceSpeechMode = 'words';
-	}
-	if (sentenceSpeechBoth && sentenceSpeechBoth.checked) {
-		sentenceSpeechMode = 'both';
-	}
-	if (sentenceSpeechErrors && sentenceSpeechErrors.checked) {
-		sentenceSpeechMode = 'errors';
+function exitBtnHandler() {
+	if (gameState === 'PLAYING') {
+		finishGame();
 	}
 }
 
-if (sentenceSpeechChars) {
-	sentenceSpeechChars.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechWords) {
-	sentenceSpeechWords.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechBoth) {
-	sentenceSpeechBoth.addEventListener('change', updateSentenceSpeechMode);
-}
-if (sentenceSpeechErrors) {
-	sentenceSpeechErrors.addEventListener('change', updateSentenceSpeechMode);
+function initFooterYear() {
+	const yearEl = document.getElementById('copyrightYear');
+	if (yearEl) {
+		yearEl.textContent = new Date().getFullYear();
+	}
 }
 
+function initInputHooks() {
+	if (captureSurface) {
+		captureSurface.setAttribute('tabindex', '-1');
+	}
 
-document
-	.getElementById('startLessonButton')
-	.addEventListener('click', () => {
-		if (gameState !== 'MENU') {
-			return;
-		}
+	if (!activatorInput) {
+		return;
+	}
 
-		gameState = 'PLAYING';
-		setScreenState('PLAYING');
-
-		try {
-			activatorInput.focus({ preventScroll: true });
-		} catch (err) {
-			activatorInput.focus();
-		}
-
-		startTypingLesson();
-	});
-
-document
-	.getElementById('exitLessonButton')
-	.addEventListener('click', () => {
-		if (gameState === 'PLAYING') {
-			finishGame();
-		}
-	});
-
-const yearEl = document.getElementById('copyrightYear');
-
-if (yearEl) {
-	yearEl.textContent = new Date().getFullYear();
+	activatorInput.addEventListener('beforeinput', handleBeforeInput);
+	activatorInput.addEventListener('keydown', handleKeyDown);
 }
+
+function initButtons() {
+	const startLessonButton = document.getElementById('startLessonButton');
+	const exitLessonButton = document.getElementById('exitLessonButton');
+
+	if (startLessonButton) {
+		startLessonButton.addEventListener('click', startBtnHandler);
+	}
+
+	if (exitLessonButton) {
+		exitLessonButton.addEventListener('click', exitBtnHandler);
+	}
+}
+
+function init() {
+	wireTypingSettings();
+	initInputHooks();
+	initButtons();
+	initFooterYear();
+}
+
+init();
