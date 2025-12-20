@@ -21,7 +21,9 @@ let errors = 0;
 let typingStartTime = null;
 let totalTypingTime = 0;
 
-const captureInput = document.getElementById('keyboard-capture');
+const activatorInput = document.getElementById('keyboard-activator');
+const captureSurface = document.getElementById('keyboard-capture');
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let isSpeaking = false;
 
@@ -35,12 +37,6 @@ const punctuationMap = {
 	" ": "space"
 };
 
-function ensureFocus() {
-	if (gameState === 'PLAYING') {
-		captureInput.focus();
-	}
-}
-
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
 	const gameScreen = document.getElementById('game-screen');
@@ -49,6 +45,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'MENU') {
 		document.title = 'Roll with It Typing';
+
 		appHeader.classList.remove('hidden');
 		appHeader.removeAttribute('inert');
 
@@ -64,6 +61,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'PLAYING') {
 		document.title = 'Roll with It Typing';
+
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -79,6 +77,7 @@ function setScreenState(targetState) {
 
 	if (targetState === 'RESULTS') {
 		document.title = 'Roll with It Typing Results';
+
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -93,42 +92,6 @@ function setScreenState(targetState) {
 	}
 }
 
-/* --- GAME START --- */
-
-function startTypingLesson() {
-	if (gameState !== 'MENU') {
-		return;
-	}
-
-	if (!lyricsText.trim()) {
-		speak("No typing lesson content is available yet.");
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	lines = lyricsText.split('\n').filter(l => l.trim());
-
-	currentLineIndex = 0;
-	currentCharIndex = 0;
-	totalKeystrokes = 0;
-	errors = 0;
-	typingStartTime = null;
-	totalTypingTime = 0;
-
-	gameState = 'PLAYING';
-
-	setScreenState('PLAYING');
-
-	captureInput.focus();
-	render();
-	promptChar();
-}
-
-/* --- SPEECH --- */
-
 function speak(text) {
 	return new Promise((resolve) => {
 		if (isSpeaking) {
@@ -139,16 +102,11 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(text);
 		const voices = window.speechSynthesis.getVoices();
-		const enVoice =
-			voices.find(v => v.lang.includes('en') && v.name.includes('Samantha')) ||
-			voices[0];
+		const voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
 
-		if (enVoice) {
-			utterance.voice = enVoice;
+		if (voice) {
+			utterance.voice = voice;
 		}
-
-		utterance.rate = 1.0;
-		utterance.pitch = 1.0;
 
 		utterance.onend = () => {
 			isSpeaking = false;
@@ -182,7 +140,28 @@ function playBeep() {
 	osc.stop(audioCtx.currentTime + 0.1);
 }
 
-/* --- RENDERING --- */
+function startTypingLesson() {
+	if (!lyricsText.trim()) {
+		speak("No typing lesson content is available yet.");
+		return;
+	}
+
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	lines = lyricsText.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+	currentLineIndex = 0;
+	currentCharIndex = 0;
+	totalKeystrokes = 0;
+	errors = 0;
+	typingStartTime = null;
+	totalTypingTime = 0;
+
+	render();
+	promptChar();
+}
 
 function render() {
 	const container = document.getElementById('lyrics-display');
@@ -193,7 +172,12 @@ function render() {
 
 	for (let i = 0; i < line.length; i++) {
 		const span = document.createElement('span');
-		span.textContent = line[i];
+
+		if (line[i] === ' ') {
+			span.textContent = '\u00A0';
+		} else {
+			span.textContent = line[i];
+		}
 
 		if (i < currentCharIndex) {
 			span.className = 'correct';
@@ -205,11 +189,9 @@ function render() {
 	}
 
 	if (currentCharIndex === line.length) {
-		container.appendChild(
-			Object.assign(document.createElement('span'), {
-				className: 'cursor'
-			})
-		);
+		const cursor = document.createElement('span');
+		cursor.className = 'cursor';
+		container.appendChild(cursor);
 	}
 }
 
@@ -226,25 +208,29 @@ async function promptChar() {
 			: char);
 
 	document.getElementById('char-indicator').textContent = `Type: ${spoken}`;
-	speak(spoken);
+	await speak(spoken);
 }
 
-/* --- INPUT HANDLING --- */
-
-async function processKey(key) {
+async function handleCharacterInput(char) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
 
-	if (key === '\\') {
+	if (char === '\\') {
 		finishGame();
 		return;
 	}
 
-	const expected = lines[currentLineIndex][currentCharIndex];
+	const expected = lines[currentLineIndex]?.[currentCharIndex];
+	if (expected === undefined) {
+		return;
+	}
 
-	if (key.toLowerCase() === expected.toLowerCase() || (expected === ' ' && key === ' ')) {
+	const matches =
+		(char.toLowerCase() === expected.toLowerCase()) ||
+		(expected === ' ' && char === ' ');
 
+	if (matches) {
 		if (currentCharIndex === 0 && typingStartTime === null) {
 			typingStartTime = Date.now();
 		}
@@ -253,7 +239,6 @@ async function processKey(key) {
 		currentCharIndex++;
 
 		if (currentCharIndex >= lines[currentLineIndex].length) {
-
 			if (typingStartTime !== null) {
 				totalTypingTime += Date.now() - typingStartTime;
 				typingStartTime = null;
@@ -285,28 +270,54 @@ async function processKey(key) {
 	}
 }
 
-captureInput.addEventListener('input', (e) => {
-	const val = captureInput.value;
+/*
+	iOS on-screen keyboard:
+	Use beforeinput and prevent edits, so no "delete haptic" loop.
+*/
+activatorInput.addEventListener('beforeinput', (e) => {
+	if (gameState !== 'PLAYING') {
+		return;
+	}
 
-	if (val.length > 0) {
-		const char = val.slice(-1);
-		captureInput.value = '';
-		processKey(char);
+	if (typeof e.data === 'string' && e.data.length > 0) {
+		e.preventDefault();
+
+		for (const ch of e.data) {
+			handleCharacterInput(ch);
+		}
 	}
 });
 
-captureInput.addEventListener('keydown', (e) => {
+/*
+	Hardware keyboards:
+*/
+activatorInput.addEventListener('keydown', (e) => {
+	if (gameState !== 'PLAYING') {
+		return;
+	}
+
 	if (e.key === '\\') {
 		e.preventDefault();
-		processKey(e.key);
+		handleCharacterInput('\\');
+		return;
+	}
+
+	if (e.key.length === 1) {
+		e.preventDefault();
+		handleCharacterInput(e.key);
 	}
 });
 
-/* --- RESULTS --- */
+/*
+	Do not allow the capture surface to become a VO focus trap.
+	It exists as a structural hook only.
+*/
+if (captureSurface) {
+	captureSurface.setAttribute('tabindex', '-1');
+}
 
 function finishGame() {
 	gameState = 'RESULTS';
-
 	setScreenState('RESULTS');
 
 	const resultsHeading = document.getElementById('resultsHeading');
@@ -321,30 +332,43 @@ function finishGame() {
 		wpm = Math.round((correctKeystrokes / 5) / mins);
 	}
 
-	const wpmNote = document.getElementById('wpmNote');
-
-	if (totalTypingTime === 0 || correctKeystrokes === 0) {
-		wpmNote.textContent =
-			'Never gonna give you a Commitment score. You didn’t type long enough for us to measure it.';
-			wpmNote.classList.remove('hidden');
-		} else {
-			wpmNote.textContent = '';
-			wpmNote.classList.add('hidden');
-	}
-
 	const acc = Math.round(
 		(correctKeystrokes / Math.max(1, totalKeystrokes)) * 100
 	) || 0;
 
 	document.getElementById('wpm-val').textContent = `${wpm}`;
 	document.getElementById('accuracy-val').textContent = `${acc}%`;
-}
 
-/* --- BUTTON WIRING --- */
+	const wpmNote = document.getElementById('wpmNote');
+
+	if (totalTypingTime === 0 || correctKeystrokes === 0) {
+		wpmNote.textContent =
+			'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
+		wpmNote.classList.remove('hidden');
+	} else {
+		wpmNote.textContent = '';
+		wpmNote.classList.add('hidden');
+	}
+}
 
 document
 	.getElementById('startLessonButton')
-	.addEventListener('click', startTypingLesson);
+	.addEventListener('click', () => {
+		if (gameState !== 'MENU') {
+			return;
+		}
+
+		gameState = 'PLAYING';
+		setScreenState('PLAYING');
+
+		try {
+			activatorInput.focus({ preventScroll: true });
+		} catch (err) {
+			activatorInput.focus();
+		}
+
+		startTypingLesson();
+	});
 
 document
 	.getElementById('exitLessonButton')
@@ -353,8 +377,6 @@ document
 			finishGame();
 		}
 	});
-
-/* --- FOOTER YEAR --- */
 
 const yearEl = document.getElementById('copyrightYear');
 

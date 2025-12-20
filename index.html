@@ -22,6 +22,7 @@
 
 			<div class="instructions">
 				<h2>Instructions</h2>
+
 				<p class="instructions-lead">
 					Accessible edition: Uses your local system voice synthesis.
 				</p>
@@ -29,7 +30,7 @@
 				<ul class="instructions-list">
 					<li>Type the characters you hear.</li>
 					<li>Mistakes trigger a beep and the prompt repeats.</li>
-					<li>You can exit at any time with the backslash key.</li>
+					<li>You can exit at any time with the backslash key or the End Lesson button.</li>
 					<li>Check out your speed and accuracy results after exiting.</li>
 				</ul>
 
@@ -43,25 +44,46 @@
 			</div>
 		</div>
 
-		<section id="game-screen" class="game-screen hidden inert">
+		<section id="game-screen" class="game-screen hidden" inert>
+			<div
+				id="lyrics-display"
+				class="typing-display"
+			></div>
+
+			<!--
+				Keyboard activator input
+				Used only to summon the on-screen keyboard for sighted users on iOS.
+				Not used for gameplay input.
+			-->
+			<label for="keyboard-activator" class="typing-input-label">
+				Type here
+			</label>
+
 			<input
 				type="text"
-				id="keyboard-capture"
+				id="keyboard-activator"
+				class="typing-input"
 				autocomplete="off"
 				autocorrect="off"
 				autocapitalize="off"
 				spellcheck="false"
 			>
 
+			<!--
+				Keyboard capture surface
+				Receives key events for gameplay.
+				Non-editable, no value mutation.
+			-->
 			<div
-				id="lyrics-display"
-				class="typing-display"
+				id="keyboard-capture"
+				tabindex="0"
 			></div>
 
 			<div id="status-bar" class="status-bar">
 				<span id="char-indicator">Awaiting input...</span>
-				<span>Press '\' to end lesson</span>
+				<span>Press \ to end lesson</span>
 			</div>
+
 			<button
 				type="button"
 				id="exitLessonButton"
@@ -69,7 +91,6 @@
 			>
 				End Lesson
 			</button>
-
 		</section>
 
 		<section id="results-screen" class="results-screen hidden" inert>
@@ -77,39 +98,45 @@
 
 			<div class="results-metrics">
 				<div class="metric" role="text">
-					<p class="metric-label">Commitments per Minute: </p>
+					<p class="metric-label">Commitments per Minute</p>
 					<p id="wpm-val" class="metric-value">0</p>
 				</div>
 
 				<div class="metric" role="text">
-					<p class="metric-label">AccuRickcy: </p>
+					<p class="metric-label">AccuRickcy</p>
 					<p id="accuracy-val" class="metric-value">0%</p>
 				</div>
 			</div>
 
-			<div id="resultSpeaker" role="alert">
+			<div role="alert">
 				<p id="wpmNote" class="results-note hidden"></p>
 			</div>
 
-			<button type="button" onclick="location.reload()" class="restart-button">
+			<button
+				type="button"
+				onclick="location.reload()"
+				class="restart-button"
+			>
 				Close Results
 			</button>
 		</section>
 	</main>
+
 	<footer id="footer" class="footer-panel">
-	<nav aria-label="Footer">
-		<ul class="footer-links">
-			<li><a href="https://marconius.com/">marconius.com</a></li>
-			<li><a href="https://marconius.com/fun/audioInvaders/">Audio Invaders</a></li>
-			<li><a href="https://marconius.com/fun/audioArcher/" id="audioArcher">Arcane Audio Archer</a></li>
-		</ul>
-	</nav>
+		<nav aria-label="Footer">
+			<ul class="footer-links">
+				<li><a href="https://marconius.com/">marconius.com</a></li>
+				<li><a href="https://marconius.com/fun/audioInvaders/">Audio Invaders</a></li>
+				<li><a href="https://marconius.com/fun/audioArcher/" id="audioArcher">Arcane Audio Archer</a></li>
+			</ul>
+		</nav>
 
-	<p class="footer-copy small muted">
-		&copy;<span id="copyrightYear"></span> Chancey Fleet and Marco Salsiccia, v.1.0.0
-	</p>
-
+		<p class="footer-copy small muted">
+			&copy;<span id="copyrightYear"></span>
+			Chancey Fleet and Marco Salsiccia v.1.0.0
+		</p>
 	</footer>
+
 	<script src="scripts/rollWithIt.js"></script>
 </body>
 </html>
