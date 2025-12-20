@@ -21,8 +21,8 @@ let errors = 0;
 let typingStartTime = null;
 let totalTypingTime = 0;
 
-const captureSurface = document.getElementById('keyboard-capture');
 const activatorInput = document.getElementById('keyboard-activator');
+const captureSurface = document.getElementById('keyboard-capture');
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let isSpeaking = false;
@@ -36,8 +36,6 @@ const punctuationMap = {
 	"?": "question mark",
 	" ": "space"
 };
-
-/* ---------- State management ---------- */
 
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
@@ -86,15 +84,13 @@ function setScreenState(targetState) {
 		gameScreen.classList.add('hidden');
 		gameScreen.setAttribute('inert', '');
 
-		resultsScreen.classListList.remove('hidden');
+		resultsScreen.classList.remove('hidden');
 		resultsScreen.removeAttribute('inert');
 
 		footer.classList.add('hidden');
 		footer.setAttribute('inert', '');
 	}
 }
-
-/* ---------- Speech ---------- */
 
 function speak(text) {
 	return new Promise((resolve) => {
@@ -106,8 +102,7 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(text);
 		const voices = window.speechSynthesis.getVoices();
-		const voice =
-			voices.find(v => v.lang.startsWith('en')) || voices[0];
+		const voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
 
 		if (voice) {
 			utterance.voice = voice;
@@ -145,8 +140,6 @@ function playBeep() {
 	osc.stop(audioCtx.currentTime + 0.1);
 }
 
-/* ---------- Game start ---------- */
-
 function startTypingLesson() {
 	if (!lyricsText.trim()) {
 		speak("No typing lesson content is available yet.");
@@ -157,7 +150,7 @@ function startTypingLesson() {
 		audioCtx.resume();
 	}
 
-	lines = lyricsText.split('\n').filter(l => l.trim());
+	lines = lyricsText.split(/\r?\n/).filter(l => l.trim().length > 0);
 
 	currentLineIndex = 0;
 	currentCharIndex = 0;
@@ -170,8 +163,6 @@ function startTypingLesson() {
 	promptChar();
 }
 
-/* ---------- Rendering ---------- */
-
 function render() {
 	const container = document.getElementById('lyrics-display');
 	container.innerHTML = '';
@@ -181,7 +172,12 @@ function render() {
 
 	for (let i = 0; i < line.length; i++) {
 		const span = document.createElement('span');
-		span.textContent = line[i];
+
+		if (line[i] === ' ') {
+			span.textContent = '\u00A0';
+		} else {
+			span.textContent = line[i];
+		}
 
 		if (i < currentCharIndex) {
 			span.className = 'correct';
@@ -215,9 +211,7 @@ async function promptChar() {
 	await speak(spoken);
 }
 
-/* ---------- Gameplay input ---------- */
-
-function handleCharacterInput(char) {
+async function handleCharacterInput(char) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
@@ -227,14 +221,16 @@ function handleCharacterInput(char) {
 		return;
 	}
 
-	const expected = lines[currentLineIndex][currentCharIndex];
-
-	if (!expected) {
+	const expected = lines[currentLineIndex]?.[currentCharIndex];
+	if (expected === undefined) {
 		return;
 	}
 
-	if (char.toLowerCase() === expected.toLowerCase()) {
+	const matches =
+		(char.toLowerCase() === expected.toLowerCase()) ||
+		(expected === ' ' && char === ' ');
 
+	if (matches) {
 		if (currentCharIndex === 0 && typingStartTime === null) {
 			typingStartTime = Date.now();
 		}
@@ -243,7 +239,6 @@ function handleCharacterInput(char) {
 		currentCharIndex++;
 
 		if (currentCharIndex >= lines[currentLineIndex].length) {
-
 			if (typingStartTime !== null) {
 				totalTypingTime += Date.now() - typingStartTime;
 				typingStartTime = null;
@@ -255,14 +250,14 @@ function handleCharacterInput(char) {
 			currentLineIndex++;
 			currentCharIndex = 0;
 
-			speak(`Phrase complete: ${completedText}`).then(() => {
-				if (currentLineIndex >= lines.length) {
-					finishGame();
-				} else {
-					render();
-					promptChar();
-				}
-			});
+			await speak(`Phrase complete: ${completedText}`);
+
+			if (currentLineIndex >= lines.length) {
+				finishGame();
+			} else {
+				render();
+				promptChar();
+			}
 		} else {
 			render();
 			promptChar();
@@ -275,40 +270,51 @@ function handleCharacterInput(char) {
 	}
 }
 
-/* ---------- Keyboard routing ---------- */
+/*
+	iOS on-screen keyboard:
+	Use beforeinput and prevent edits, so no "delete haptic" loop.
+*/
+activatorInput.addEventListener('beforeinput', (e) => {
+	if (gameState !== 'PLAYING') {
+		return;
+	}
+
+	if (typeof e.data === 'string' && e.data.length > 0) {
+		e.preventDefault();
+
+		for (const ch of e.data) {
+			handleCharacterInput(ch);
+		}
+	}
+});
 
 /*
-	Keyboard activator:
-	Used ONLY to open the iOS keyboard.
-	We never read or mutate its value.
+	Hardware keyboards:
 */
 activatorInput.addEventListener('keydown', (e) => {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
 
-	if (e.key.length === 1 || e.key === '\\') {
+	if (e.key === '\\') {
+		e.preventDefault();
+		handleCharacterInput('\\');
+		return;
+	}
+
+	if (e.key.length === 1) {
 		e.preventDefault();
 		handleCharacterInput(e.key);
 	}
 });
 
 /*
-	Keyboard capture surface:
-	Primary gameplay input for SR + BSI users.
+	Do not allow the capture surface to become a VO focus trap.
+	It exists as a structural hook only.
 */
-captureSurface.addEventListener('keydown', (e) => {
-	if (gameState !== 'PLAYING') {
-		return;
-	}
-
-	if (e.key.length === 1 || e.key === '\\') {
-		e.preventDefault();
-		handleCharacterInput(e.key);
-	}
-});
-
-/* ---------- Results ---------- */
+if (captureSurface) {
+	captureSurface.setAttribute('tabindex', '-1');
+}
 
 function finishGame() {
 	gameState = 'RESULTS';
@@ -345,12 +351,9 @@ function finishGame() {
 	}
 }
 
-/* ---------- Buttons ---------- */
-
 document
 	.getElementById('startLessonButton')
 	.addEventListener('click', () => {
-
 		if (gameState !== 'MENU') {
 			return;
 		}
@@ -358,11 +361,11 @@ document
 		gameState = 'PLAYING';
 		setScreenState('PLAYING');
 
-		// Sighted users: open keyboard
-		activatorInput.focus({ preventScroll: true });
-
-		// SR + BSI users: ensure capture surface remains usable
-		captureSurface.focus({ preventScroll: true });
+		try {
+			activatorInput.focus({ preventScroll: true });
+		} catch (err) {
+			activatorInput.focus();
+		}
 
 		startTypingLesson();
 	});
@@ -374,8 +377,6 @@ document
 			finishGame();
 		}
 	});
-
-/* ---------- Footer year ---------- */
 
 const yearEl = document.getElementById('copyrightYear');
 
