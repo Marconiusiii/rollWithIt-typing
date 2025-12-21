@@ -22,6 +22,7 @@ let contentMode = 'original';
 
 let totalKeystrokes = 0;
 let errors = 0;
+let errorKeys = new Set();
 
 let typingStartTime = null;
 let totalTypingTime = 0;
@@ -54,6 +55,11 @@ function queueSpeak(text) {
 function resetSpeakQueue() {
 	speakChain = Promise.resolve();
 }
+
+function errorKeysToString() {
+	return Array.from(errorKeys).join(', ');
+}
+
 
 function setScreenState(targetState) {
 	const appHeader = document.querySelector('.app-header');
@@ -333,6 +339,7 @@ function startTypingLesson() {
 
 	totalKeystrokes = 0;
 	errors = 0;
+	errorKeys.clear();
 
 	typingStartTime = null;
 	totalTypingTime = 0;
@@ -394,6 +401,7 @@ async function handleCharacterInput(char) {
 
 	if (!matches) {
 		errors++;
+		errorKeys.add(expected);
 		playBeep();
 
 		if (typingMode === 'guided') {
@@ -490,9 +498,11 @@ function finishGame() {
 	}
 	let wpmLabel = document.getElementById('wpmLabel');
 	let accLabel = document.getElementById('accuracyLabel');
+	let errLabel = document.getElementById('errLabel');
+	let desertLabel = document.getElementById('desertLabel');
 	if (contentMode === 'original') {
 		if (wpmLabel) {
-			wpmLabel.textContent = "Commitments per Minute: ";
+			wpmLabel.textContent = "Rolls per Minute: ";
 		}
 		if (accLabel) {
 			accLabel.textContent = "AccuRickcy: ";
@@ -520,14 +530,27 @@ function finishGame() {
 
 	const wpmVal = document.getElementById('wpm-val');
 	const accVal = document.getElementById('accuracy-val');
+	const errVal = document.getElementById('err-val');
+	const desertVal = document.getElementById('desert-val');
 
 	if (wpmVal) {
 		wpmVal.textContent = `${wpm}`;
 	}
-
 	if (accVal) {
 		accVal.textContent = `${acc}%`;
 	}
+	if (errVal) {
+		errVal.textContent = `${errors}`;
+	}
+
+	if (errorKeys.size === 0) {
+		desertLabel.textContent = "No keys deserted you this time!";
+		desertVal.textContent = '';
+	} else {
+		desertLabel.textContent = "Practice these keys so they don't desert you again: ";
+		desertVal.textContent = errorKeysToString();
+	}
+
 
 	const wpmNote = document.getElementById('wpmNote');
 
