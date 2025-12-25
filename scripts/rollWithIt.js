@@ -159,6 +159,22 @@ const typingContentSets = [
 			'The story ends… for now.'
 		]
 	}
+	{
+		id: 'coding-fundamentals',
+		title: 'Coding Fundamentals',
+		lines: [
+			`const count = 0;`,
+			`let totalScore = count + 5;`,
+			`if (totalScore > 10) return;`,
+			`function add(a, b) { return a + b; }`,
+			`for (let i = 0; i < 5; i++) {}`,
+			`while (isRunning) { checkState(); }`,
+			`const name = "Ada";`,
+			`console.log("Hello, world");`,
+			`array.map(item => item.id);`,
+			`export default startGame;`
+		]
+	}
 ];
 
 let lyricsText = ``;
