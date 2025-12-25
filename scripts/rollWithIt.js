@@ -161,7 +161,6 @@ const typingContentSets = [
 	}
 ];
 
-
 let lyricsText = ``;
 
 let lines = [];
