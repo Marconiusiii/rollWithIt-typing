@@ -158,7 +158,7 @@ const typingContentSets = [
 			'The final line approaches.',
 			'The story ends… for now.'
 		]
-	}
+	},
 	{
 		id: 'coding-fundamentals',
 		title: 'Coding Fundamentals',
@@ -174,7 +174,40 @@ const typingContentSets = [
 			`array.map(item => item.id);`,
 			`export default startGame;`
 		]
+	},
+	{
+		id: 'web-basics',
+		title: 'Web Basics',
+		lines: [
+			`<button type="button">Click me</button>`,
+			`document.querySelector("#app");`,
+			`element.addEventListener("click", start);`,
+			`const heading = document.createElement("h1");`,
+			`input.value = "";`,
+			`form.submit();`,
+			`window.location.href = "/home";`,
+			`console.log(event.target);`,
+			`button.disabled = true;`,
+			`main.appendChild(section);`
+		]
+	},
+	{
+		id: 'svg-basics',
+		title: 'SVG Basics',
+		lines: [
+			`<svg viewBox="0 0 100 100">`,
+			`<circle cx="50" cy="50" r="40" />`,
+			`<rect x="10" y="10" width="80" height="80" />`,
+			`<line x1="0" y1="0" x2="100" y2="100" />`,
+			`<path d="M10 10 L90 10" />`,
+			`<text x="50" y="50">Hello</text>`,
+			`fill="none"`,
+			`stroke="black"`,
+			`stroke-width="2"`,
+			`</svg>`
+		]
 	}
+
 ];
 
 let lyricsText = ``;
