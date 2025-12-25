@@ -143,9 +143,21 @@
 				checked
 			>
 			<label for="contentModeOriginal">
-				Use original typing content
+				Use random typing content
 			</label>
 		</div>
+
+<div class="setting-row">
+	<input
+		type="radio"
+		name="contentMode"
+		id="contentModeSet"
+		value="set"
+	>
+	<label for="contentModeSet">
+		Choose a typing set
+	</label>
+</div>
 
 		<div class="setting-row">
 			<input
@@ -159,6 +171,30 @@
 			</label>
 		</div>
 	</fieldset>
+
+<fieldset
+	id="contentSetFieldset"
+	disabled
+>
+	<legend>Choose a typing set</legend>
+
+	<label for="contentSetSelect">
+		Available sets
+	</label>
+
+	<select id="contentSetSelect">
+		<option value="classic-lit">Classic Literature</option>
+		<option value="shakespeare">Shakespearean Rhythm</option>
+		<option value="poetry">Poetry and Meter</option>
+		<option value="mystery">Mystery and Suspense</option>
+		<option value="fantasy">Fantasy and Myth</option>
+		<option value="science-fiction">Science Fiction</option>
+		<option value="philosophy">Philosophy</option>
+		<option value="childrens-lit">Children’s Literature</option>
+		<option value="writing-about-writing">Writing About Writing</option>
+		<option value="meta">Meta Typing</option>
+	</select>
+</fieldset>
 
 	<fieldset
 		id="customContentFieldset"

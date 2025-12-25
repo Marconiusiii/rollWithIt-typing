@@ -1,15 +1,168 @@
-let lyricsText = `We're no strangers to love
-You know the rules and so do I
-A full commitment's what I'm thinkin' of
-You wouldn't get this from any other guy
-I just wanna tell you how I'm feeling
-Gotta make you understand
-Never gonna give you up
-Never gonna let you down
-Never gonna run around and desert you
-Never gonna make you cry
-Never gonna say goodbye
-Never gonna tell a lie and hurt you`;
+const typingContentSets = [
+	{
+		id: 'classic-lit',
+		title: 'Classic Literature',
+		lines: [
+			'Call me Ishmael, and mind your commas.',
+			'It was the best of times, it was typed well.',
+			'All happy families type alike.',
+			'The page was blank, and waiting patiently.',
+			'Some truths are universally acknowledged.',
+			'Beware the jabber of careless fingers.',
+			'Time slipped quietly between the words.',
+			'The story began with a single letter.',
+			'A sentence marched forward, steady and sure.',
+			'The final line rested at last.'
+		]
+	},
+	{
+		id: 'shakespeare',
+		title: 'Shakespearean Rhythm',
+		lines: [
+			'To type, or not to type, that is typed.',
+			'Words, words, words, all marching on.',
+			'The play is typed upon this stage.',
+			'Fair letters dance upon the screen.',
+			'Once more unto the keyboard, friends.',
+			'The prompt speaks, and you respond.',
+			'A pause, a breath, a comma lands.',
+			'The line completes, the cursor waits.',
+			'All the world’s a typing test.',
+			'Exit, pursued by accuracy.'
+		]
+	},
+	{
+		id: 'poetry',
+		title: 'Poetry and Meter',
+		lines: [
+			'The line begins with quiet grace.',
+			'Each letter falls into its place.',
+			'The rhythm taps beneath your hands.',
+			'A pause between the words feels right.',
+			'Short lines can still carry weight.',
+			'The cursor blinks like measured time.',
+			'The stanza waits for no delay.',
+			'Breath in, type on, then let go.',
+			'The poem listens as you type.',
+			'Silence follows the final word.'
+		]
+	},
+	{
+		id: 'mystery',
+		title: 'Mystery and Suspense',
+		lines: [
+			'The letter appeared without warning.',
+			'A shadow crept between the keys.',
+			'Something was missing from the line.',
+			'The cursor blinked, impatient now.',
+			'A clue hid in plain sight.',
+			'Each word narrowed the search.',
+			'The sentence ended too soon.',
+			'Footsteps echoed in the margins.',
+			'The truth revealed itself slowly.',
+			'Case closed with a final keystroke.'
+		]
+	},
+	{
+		id: 'fantasy',
+		title: 'Fantasy and Myth',
+		lines: [
+			'The scroll unfurled before your eyes.',
+			'Ancient words shimmered on the page.',
+			'A spell was typed with careful care.',
+			'The dragon paused to read.',
+			'Each rune required steady hands.',
+			'The quest advanced line by line.',
+			'Magic lives in punctuation.',
+			'The hero hesitated, then typed.',
+			'The prophecy reached its end.',
+			'The tale slept until typed again.'
+		]
+	},
+	{
+		id: 'science-fiction',
+		title: 'Science Fiction',
+		lines: [
+			'The console hummed softly.',
+			'Coordinates scrolled across the screen.',
+			'A signal blinked in binary rhythm.',
+			'The future typed itself forward.',
+			'Errors could alter the timeline.',
+			'The system waited for input.',
+			'A pause, then confirmation.',
+			'Data flowed line by line.',
+			'The mission logged successfully.',
+			'End transmission.'
+		]
+	},
+	{
+		id: 'philosophy',
+		title: 'Philosophy',
+		lines: [
+			'I think, therefore I type.',
+			'Each word questions the next.',
+			'Meaning forms between letters.',
+			'The pause matters as much as text.',
+			'Truth rarely arrives instantly.',
+			'Thought unfolds one line at a time.',
+			'Doubt lingers near the cursor.',
+			'The sentence resolves itself.',
+			'Understanding types slowly.',
+			'Reflection ends with a period.'
+		]
+	},
+	{
+		id: 'childrens-lit',
+		title: 'Children’s Literature',
+		lines: [
+			'The mouse ran across the keys.',
+			'A small letter made a big sound.',
+			'The page smiled back gently.',
+			'Words hopped like playful frogs.',
+			'The story liked being typed.',
+			'Each line felt like a rhyme.',
+			'The cursor blinked cheerfully.',
+			'The sentence waved hello.',
+			'Almost time to say goodbye.',
+			'The book closed softly.'
+		]
+	},
+	{
+		id: 'writing-about-writing',
+		title: 'Writing About Writing',
+		lines: [
+			'The sentence waits to be written.',
+			'Fingers hover, then begin.',
+			'A typo tries to sneak in.',
+			'Accuracy pulls it back.',
+			'The line grows more confident.',
+			'Punctuation finds its place.',
+			'The rhythm feels familiar.',
+			'Editing happens in real time.',
+			'The paragraph feels complete.',
+			'The writer pauses.'
+		]
+	},
+	{
+		id: 'meta',
+		title: 'Meta Typing',
+		lines: [
+			'This line knows it is a line.',
+			'The words are aware of you.',
+			'Typing reveals the secret.',
+			'Each letter waits its turn.',
+			'The sentence enjoys attention.',
+			'A mistake almost escaped.',
+			'The cursor judges silently.',
+			'You and the text agree.',
+			'The final line approaches.',
+			'The story ends… for now.'
+		]
+	}
+];
+
+
+let lyricsText = ``;
 
 let lines = [];
 let currentLineIndex = 0;
@@ -563,6 +716,11 @@ function finishGame() {
 			wpmNote.classList.add('hidden');
 		}
 	}
+}
+
+function getRandomContentSet() {
+	const index = Math.floor(Math.random() * typingContentSets.length);
+	return typingContentSets[index];
 }
 
 function startBtnHandler() {
