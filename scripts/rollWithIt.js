@@ -251,7 +251,6 @@ function setScreenState(targetState) {
 	}
 
 	if (targetState === 'RESULTS') {
-		document.title = 'Roll with It Typing Results';
 
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
@@ -642,11 +641,21 @@ function handleKeyDown(e) {
 function finishGame() {
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
+	if (activeContentTitle) {
+	document.title = `${activeContentTitle} Typing Results - Roll With It`;
+} else {
+	document.title = 'Typing Results - Roll With It';
+}
 
-	const resultsHeading = document.getElementById('resultsHeading');
-	if (resultsHeading) {
-		resultsHeading.focus();
+const resultsHeading = document.getElementById('resultsHeading');
+if (resultsHeading) {
+	if (activeContentTitle) {
+		resultsHeading.textContent = `${activeContentTitle} Typing Results`;
+	} else {
+		resultsHeading.textContent = 'Typing Results';
 	}
+	resultsHeading.focus();
+}
 	let errLabel = document.getElementById('errLabel');
 	let desertLabel = document.getElementById('desertLabel');
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
