@@ -227,6 +227,7 @@ let contentMode = 'original';
 let totalKeystrokes = 0;
 let errors = 0;
 let errorKeys = new Set();
+const progressStatus = document.getElementById('progressStatus');
 
 let typingStartTime = null;
 let totalTypingTime = 0;
@@ -250,6 +251,18 @@ const punctuationMap = {
 };
 
 const MAX_CUSTOM_LINES = 40;
+
+function updateProgressStatus() {
+	if (!progressStatus || !lines || lines.length === 0) {
+		return;
+	}
+
+	const completed = currentLineIndex;
+	const total = lines.length;
+
+	progressStatus.textContent = `${completed} out of ${total} lines complete`;
+}
+
 
 function expandPunctuationForSpeech(text) {
 	if (!speakPunctuation) {
@@ -573,6 +586,8 @@ function startTypingLesson() {
 
 	currentLineIndex = 0;
 	currentCharIndex = 0;
+	updateProgressStatus();
+
 
 	totalKeystrokes = 0;
 	errors = 0;
@@ -681,6 +696,7 @@ async function handleCharacterInput(char) {
 		const lineDoneText = line;
 
 		currentLineIndex++;
+		updateProgressStatus();
 		currentCharIndex = 0;
 
 		await handleLineDone(lineDoneText);
