@@ -162,6 +162,7 @@ const typingContentSets = [
 	{
 		id: 'coding-fundamentals',
 		title: 'Coding Fundamentals',
+		type: 'code',
 		lines: [
 			`const count = 0;`,
 			`let totalScore = count + 5;`,
@@ -178,6 +179,7 @@ const typingContentSets = [
 	{
 		id: 'web-basics',
 		title: 'Web Basics',
+		type: 'code',
 		lines: [
 			`<button type="button">Click me</button>`,
 			`document.querySelector("#app");`,
@@ -194,6 +196,7 @@ const typingContentSets = [
 	{
 		id: 'svg-basics',
 		title: 'SVG Basics',
+		type: 'code',
 		lines: [
 			`<svg viewBox="0 0 100 100">`,
 			`<circle cx="50" cy="50" r="40" />`,
@@ -248,6 +251,25 @@ const punctuationMap = {
 
 const MAX_CUSTOM_LINES = 40;
 
+function expandPunctuationForSpeech(text) {
+	if (!speakPunctuation) {
+		return text;
+	}
+
+	return text
+		.replace(/</g, ' less than ')
+		.replace(/>/g, ' greater than ')
+		.replace(/{/g, ' open brace ')
+		.replace(/}/g, ' close brace ')
+		.replace(/\(/g, ' open parenthesis ')
+		.replace(/\)/g, ' close parenthesis ')
+		.replace(/;/g, ' semicolon ')
+		.replace(/,/g, ' comma ')
+		.replace(/\./g, ' period ');
+}
+
+
+
 function queueSpeak(text) {
 	speakChain = speakChain.then(() => speak(text));
 	return speakChain;
@@ -259,6 +281,23 @@ function resetSpeakQueue() {
 
 function errorKeysToString() {
 	return Array.from(errorKeys).join(', ');
+}
+
+
+function populateContentSetSelect() {
+	const select = document.getElementById('contentSetSelect');
+	if (!select) {
+		return;
+	}
+
+	select.innerHTML = '';
+
+	typingContentSets.forEach((set) => {
+		const option = document.createElement('option');
+		option.value = set.id;
+		option.textContent = set.title;
+		select.appendChild(option);
+	});
 }
 
 
@@ -431,7 +470,7 @@ async function speakLineOnce() {
 	}
 
 	resetSpeakQueue();
-	await speak(line);
+	await speak(expandPunctuationForSpeech(line));
 }
 
 async function promptChar() {
@@ -557,7 +596,7 @@ async function handleLineDone(lineDoneText) {
 		await speak('Phrase complete');
 	} else {
 		resetSpeakQueue();
-		await speak(`Phrase complete: ${lineDoneText}`);
+		await speak(expandPunctuationForSpeech(`Phrase complete: ${lineDoneText}`));
 	}
 
 	if (currentLineIndex >= lines.length) {
@@ -627,7 +666,7 @@ async function handleCharacterInput(char) {
 			if (isWordEnd(line, currentCharIndex)) {
 				const lastWord = getLastWord(line, currentCharIndex);
 				if (lastWord) {
-					queueSpeak(lastWord);
+					queueSpeak(expandPunctuationForSpeech(lastWord));
 				}
 			}
 		}
@@ -757,6 +796,8 @@ if (resultsHeading) {
 }
 
 let activeContentTitle = '';
+let speakPunctuation = false;
+
 
 function getRandomContentSet() {
 	const index = Math.floor(Math.random() * typingContentSets.length);
@@ -777,37 +818,40 @@ function startBtnHandler() {
 		return;
 	}
 
-if (contentMode === 'original') {
-	const set = getRandomContentSet();
-	lyricsText = set.lines.join('\n');
-	activeContentTitle = set.title;
-}
-
-if (contentMode === 'set') {
-	const set = getSelectedContentSet();
-	if (!set) {
-		return;
+	if (contentMode === 'original') {
+		const set = getRandomContentSet();
+		lyricsText = set.lines.join('\n');
+		activeContentTitle = set.title;
+		speakPunctuation = set.type === 'code';
 	}
 
-	lyricsText = set.lines.join('\n');
-	activeContentTitle = set.title;
-}
+	if (contentMode === 'set') {
+		const set = getSelectedContentSet();
+		if (!set) {
+			return;
+		}
 
-if (contentMode === 'custom') {
-	const input = document.getElementById('customContentInput');
-	const rawText = input ? input.value : '';
-
-	const cleanText = sanitizeText(rawText);
-	const customLines = buildLinesFromText(cleanText);
-
-	if (customLines.length === 0) {
-		showCustomContentError();
-		return;
+		lyricsText = set.lines.join('\n');
+		activeContentTitle = set.title;
+		speakPunctuation = set.type === 'code';
 	}
 
-	lyricsText = customLines.join('\n');
-	activeContentTitle = 'Custom Typing';
-}
+	if (contentMode === 'custom') {
+		const input = document.getElementById('customContentInput');
+		const rawText = input ? input.value : '';
+
+		const cleanText = sanitizeText(rawText);
+		const customLines = buildLinesFromText(cleanText);
+
+		if (customLines.length === 0) {
+			showCustomContentError();
+			return;
+		}
+
+		lyricsText = customLines.join('\n');
+		activeContentTitle = 'Custom Typing';
+		speakPunctuation = false;
+	}
 
 	gameState = 'PLAYING';
 	setScreenState('PLAYING');
@@ -887,13 +931,19 @@ function initTypingSettings() {
 
 	const typingModeGuided = document.getElementById('typingModeGuided');
 	const typingModeSentence = document.getElementById('typingModeSentence');
+	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
 	const customContentInput = document.getElementById('customContentInput');
 
+	populateContentSetSelect();
 
 	if (typingModeGuided) {
 		typingModeGuided.addEventListener('change', () => {
 			if (typingModeGuided.checked) {
 				typingMode = 'guided';
+
+				if (sentenceSpeechOptions) {
+					sentenceSpeechOptions.disabled = true;
+				}
 			}
 		});
 	}
@@ -902,6 +952,10 @@ function initTypingSettings() {
 		typingModeSentence.addEventListener('change', () => {
 			if (typingModeSentence.checked) {
 				typingMode = 'sentence';
+
+				if (sentenceSpeechOptions) {
+					sentenceSpeechOptions.disabled = false;
+				}
 			}
 		});
 	}
@@ -936,13 +990,49 @@ if (contentModeCustom) {
 	});
 }
 
-	if (customContentInput) {
-		customContentInput.addEventListener('input', () => {
-			enforceLineLimit(customContentInput);
-			clearCustomContentError();
-		});
+/* Initial state sync */
+if (contentModeSet && contentModeSet.checked) {
+	contentMode = 'set';
+	contentSetFieldset.disabled = false;
+	customContentFieldset.disabled = true;
+}
+
+if (contentModeOriginal && contentModeOriginal.checked) {
+	contentMode = 'original';
+	contentSetFieldset.disabled = true;
+	customContentFieldset.disabled = true;
+}
+
+if (contentModeCustom && contentModeCustom.checked) {
+	contentMode = 'custom';
+	contentSetFieldset.disabled = true;
+	customContentFieldset.disabled = false;
+}
+
+if (customContentInput) {
+	customContentInput.addEventListener('input', () => {
+		enforceLineLimit(customContentInput);
+		clearCustomContentError();
+	});
+}
+if (typingModeSentence && typingModeSentence.checked) {
+	typingMode = 'sentence';
+
+	if (sentenceSpeechOptions) {
+		sentenceSpeechOptions.disabled = false;
 	}
 }
+
+if (typingModeGuided && typingModeGuided.checked) {
+	typingMode = 'guided';
+
+	if (sentenceSpeechOptions) {
+		sentenceSpeechOptions.disabled = true;
+	}
+}
+
+}
+
 
 function init() {
 	initTypingSettings();
