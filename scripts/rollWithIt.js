@@ -237,8 +237,6 @@ function setScreenState(targetState) {
 	}
 
 	if (targetState === 'PLAYING') {
-		document.title = 'Roll with It Typing';
-
 		appHeader.classList.add('hidden');
 		appHeader.setAttribute('inert', '');
 
@@ -649,25 +647,8 @@ function finishGame() {
 	if (resultsHeading) {
 		resultsHeading.focus();
 	}
-	let wpmLabel = document.getElementById('wpmLabel');
-	let accLabel = document.getElementById('accuracyLabel');
 	let errLabel = document.getElementById('errLabel');
 	let desertLabel = document.getElementById('desertLabel');
-	if (contentMode === 'original') {
-		if (wpmLabel) {
-			wpmLabel.textContent = "Rolls per Minute: ";
-		}
-		if (accLabel) {
-			accLabel.textContent = "AccuRickcy: ";
-		}
-	} else {
-		if (wpmLabel) {
-			wpmLabel.textContent = "WPM: ";
-		}
-		if (accLabel) {
-		accLabel.textContent = "Accuracy: ";
-		}
-	}
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
 	let wpm = 0;
@@ -718,9 +699,20 @@ function finishGame() {
 	}
 }
 
+let activeContentTitle = '';
+
 function getRandomContentSet() {
 	const index = Math.floor(Math.random() * typingContentSets.length);
 	return typingContentSets[index];
+}
+
+function getSelectedContentSet() {
+	const select = document.getElementById('contentSetSelect');
+	if (!select) {
+		return null;
+	}
+
+	return typingContentSets.find(set => set.id === select.value) || null;
 }
 
 function startBtnHandler() {
@@ -728,25 +720,44 @@ function startBtnHandler() {
 		return;
 	}
 
-	if (contentMode === 'custom') {
-		const input = document.getElementById('customContentInput');
-		const rawText = input ? input.value : '';
+if (contentMode === 'original') {
+	const set = getRandomContentSet();
+	lyricsText = set.lines.join('\n');
+	activeContentTitle = set.title;
+}
 
-		const cleanText = sanitizeText(rawText);
-		const customLines = buildLinesFromText(cleanText);
-
-		if (customLines.length === 0) {
-			showCustomContentError();
-			return;
-		}
-
-		lyricsText = customLines.join('\n');
-	} else {
-		clearCustomContentError();
+if (contentMode === 'set') {
+	const set = getSelectedContentSet();
+	if (!set) {
+		return;
 	}
+
+	lyricsText = set.lines.join('\n');
+	activeContentTitle = set.title;
+}
+
+if (contentMode === 'custom') {
+	const input = document.getElementById('customContentInput');
+	const rawText = input ? input.value : '';
+
+	const cleanText = sanitizeText(rawText);
+	const customLines = buildLinesFromText(cleanText);
+
+	if (customLines.length === 0) {
+		showCustomContentError();
+		return;
+	}
+
+	lyricsText = customLines.join('\n');
+	activeContentTitle = 'Custom Typing';
+}
 
 	gameState = 'PLAYING';
 	setScreenState('PLAYING');
+	if (activeContentTitle) {
+		document.title = `${activeContentTitle} - Roll With It`;
+	}
+
 
 	try {
 		activatorInput.focus({ preventScroll: true });
@@ -810,13 +821,17 @@ function initButtons() {
 }
 
 function initTypingSettings() {
+	const contentModeOriginal = document.getElementById('contentModeOriginal');
+	const contentModeSet = document.getElementById('contentModeSet');
+	const contentModeCustom = document.getElementById('contentModeCustom');
+
+	const contentSetFieldset = document.getElementById('contentSetFieldset');
+	const customContentFieldset = document.getElementById('customContentFieldset');
+
 	const typingModeGuided = document.getElementById('typingModeGuided');
 	const typingModeSentence = document.getElementById('typingModeSentence');
 	const customContentInput = document.getElementById('customContentInput');
 
-	const contentModeOriginal = document.getElementById('contentModeOriginal');
-	const contentModeCustom = document.getElementById('contentModeCustom');
-	const customContentFieldset = document.getElementById('customContentFieldset');
 
 	if (typingModeGuided) {
 		typingModeGuided.addEventListener('change', () => {
@@ -834,23 +849,35 @@ function initTypingSettings() {
 		});
 	}
 
-	if (contentModeOriginal && customContentFieldset) {
-		contentModeOriginal.addEventListener('change', () => {
-			if (contentModeOriginal.checked) {
-				contentMode = 'original';
-				customContentFieldset.disabled = true;
-			}
-		});
-	}
+if (contentModeOriginal) {
+	contentModeOriginal.addEventListener('change', () => {
+		if (contentModeOriginal.checked) {
+			contentMode = 'original';
+			contentSetFieldset.disabled = true;
+			customContentFieldset.disabled = true;
+		}
+	});
+}
 
-	if (contentModeCustom && customContentFieldset) {
-		contentModeCustom.addEventListener('change', () => {
-			if (contentModeCustom.checked) {
-				contentMode = 'custom';
-				customContentFieldset.disabled = false;
-			}
-		});
-	}
+if (contentModeSet) {
+	contentModeSet.addEventListener('change', () => {
+		if (contentModeSet.checked) {
+			contentMode = 'set';
+			contentSetFieldset.disabled = false;
+			customContentFieldset.disabled = true;
+		}
+	});
+}
+
+if (contentModeCustom) {
+	contentModeCustom.addEventListener('change', () => {
+		if (contentModeCustom.checked) {
+			contentMode = 'custom';
+			contentSetFieldset.disabled = true;
+			customContentFieldset.disabled = false;
+		}
+	});
+}
 
 	if (customContentInput) {
 		customContentInput.addEventListener('input', () => {
