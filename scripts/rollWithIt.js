@@ -227,7 +227,7 @@ const typingContentSets = [
 		id: 'foodies',
 		title: 'Typing for Foodies',
 		lines: [
-			'The menu read like a love letter.',
+			'The menu reads like a love letter.',
 			'Seasoning mattered more than speed.',
 			'The sauce finally found balance.',
 			'A perfect bite deserved a pause.',
@@ -593,6 +593,11 @@ function render() {
 
 	const line = lines[currentLineIndex];
 	if (!line) {
+		return;
+	}
+
+	if (typingMode === 'sentence') {
+		container.textContent = line;
 		return;
 	}
 
@@ -1109,6 +1114,7 @@ function initTypingSettings() {
 	const typingModeSentence = document.getElementById('typingModeSentence');
 	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
 	const customContentInput = document.getElementById('customContentInput');
+	const container = document.getElementById('lyrics-display');
 
 	populateContentSetSelect();
 
@@ -1116,6 +1122,9 @@ function initTypingSettings() {
 		typingModeGuided.addEventListener('change', () => {
 			if (typingModeGuided.checked) {
 				typingMode = 'guided';
+				if (container) {
+					container.removeAttribute('role');
+				}
 
 				if (sentenceSpeechOptions) {
 					sentenceSpeechOptions.disabled = true;
@@ -1128,6 +1137,9 @@ function initTypingSettings() {
 		typingModeSentence.addEventListener('change', () => {
 			if (typingModeSentence.checked) {
 				typingMode = 'sentence';
+				if (container) {
+					container.setAttribute('role', 'text');
+				}
 
 				if (sentenceSpeechOptions) {
 					sentenceSpeechOptions.disabled = false;
@@ -1164,6 +1176,15 @@ if (contentModeCustom) {
 			customContentFieldset.disabled = false;
 		}
 	});
+
+if (typingMode === 'sentence' && container) {
+	container.setAttribute('role', 'text');
+}
+
+if (typingMode === 'guided' && container) {
+	container.removeAttribute('role');
+}
+
 }
 
 /* Initial state sync */
