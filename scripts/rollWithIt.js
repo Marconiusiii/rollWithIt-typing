@@ -156,7 +156,7 @@ const typingContentSets = [
 			'The cursor judges silently.',
 			'You and the text agree.',
 			'The final line approaches.',
-			'The story ends… for now.'
+			'The story ends... for now.'
 		]
 	},
 	{
