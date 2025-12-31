@@ -160,6 +160,166 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'cats',
+		title: 'Cat Typing Detected',
+		lines: [
+			'The cat watched the cursor blink.',
+			'Soft paws crossed the keyboard.',
+			'A tail flicked near the screen.',
+			'The cat typed nothing on purpose.',
+			'Whiskers twitched at every sound.',
+			'A nap followed intense focus.',
+			'The cat claimed the chair.',
+			'Keys warmed under gentle paws.',
+			'The screen reflected curious eyes.',
+			'Typing paused for purring.'
+		]
+	},
+	{
+		id: 'dogs',
+		title: 'Dogs',
+		lines: [
+			'The dog waited by the desk.',
+			'A wagging tail hit the chair.',
+			'Ears perked at every beep.',
+			'The dog approved of progress.',
+			'Typing stopped for a treat.',
+			'Paws paced across the floor.',
+			'The screen earned a curious sniff.',
+			'The dog settled nearby.',
+			'Keys clicked in steady rhythm.',
+			'A nap followed good work.'
+		]
+	},
+	{
+		id: 'guide-dogs',
+		title: 'Guide Dogs',
+		lines: [
+			'The guide dog rested calmly.',
+			'Focus mattered at every step.',
+			'Trust moved them forward together.',
+			'The harness stayed gently still.',
+			'Training turned care into skill.',
+			'The path ahead felt familiar.',
+			'Signals mattered more than words.',
+			'The dog waited for direction.',
+			'Movement followed quiet cues.',
+			'The team paused, confident.'
+		]
+	},
+	{
+		id: 'art-puns',
+		title: 'Art (may have Puns)',
+		lines: [
+			'The artist drew a blank on purpose.',
+			'This sketch really paints a picture.',
+			'I canvas believe how well this typed.',
+			'That idea was framed perfectly.',
+			'The brush stroked everyone the right way.',
+			'Abstract thoughts made concrete lines.',
+			'The gallery gave standing ovations.',
+			'This sentence is a work in progress.',
+			'The colors argued, then found balance.',
+			'Art history repeats itself, stylishly.'
+		]
+	},
+	{
+		id: 'foodies',
+		title: 'Typing for Foodies',
+		lines: [
+			'The menu read like a love letter.',
+			'Seasoning mattered more than speed.',
+			'The sauce finally found balance.',
+			'A perfect bite deserved a pause.',
+			'Textures told the real story.',
+			'The chef trusted simple ingredients.',
+			'Plating turned dinner into art.',
+			'Flavors lingered between words.',
+			'A recipe evolved with practice.',
+			'The last bite earned silence.'
+		]
+	},
+	{
+		id: 'food',
+		title: 'Typing while Hungry',
+		lines: [
+			'Breakfast started the day gently.',
+			'Soup warmed the room.',
+			'Bread baked slowly.',
+			'Lunch arrived right on time.',
+			'Snacks disappeared quickly.',
+			'Dinner brought everyone together.',
+			'Leftovers waited patiently.',
+			'Spices filled the air.',
+			'Cooking felt familiar.',
+			'The meal ended happily.'
+		]
+	},
+	{
+		id: 'space',
+		title: 'Space and Planets',
+		lines: [
+			'Planets drifted across the screen.',
+			'Orbits followed silent rules.',
+			'A comet passed without warning.',
+			'Stars blinked like distant pixels.',
+			'Gravity held everything together.',
+			'The moon waited patiently.',
+			'Mars glowed a dusty red.',
+			'Saturn balanced fragile rings.',
+			'Space stretched beyond sight.',
+			'The universe typed quietly.'
+		]
+	},
+	{
+		id: 'history',
+		title: 'History',
+		lines: [
+			'History remembers small details.',
+			'Stories survived careful writing.',
+			'Time changed the meaning of words.',
+			'Ink once carried every thought.',
+			'Letters traveled long distances.',
+			'Pages outlived their authors.',
+			'Records shaped our memory.',
+			'The past typed slowly.',
+			'Voices echoed through time.',
+			'The story continued forward.'
+		]
+	},
+	{
+		id: 'chemistry',
+		title: 'Chemistry',
+		lines: [
+			'Atoms moved in steady patterns.',
+			'Bonds formed with quiet force.',
+			'Reactions required patience.',
+			'Elements lined the table.',
+			'Heat changed everything.',
+			'Solutions mixed carefully.',
+			'The formula balanced out.',
+			'Measurements mattered deeply.',
+			'Results surprised everyone.',
+			'The experiment concluded.'
+		]
+	},
+	{
+		id: 'fun-and-games',
+		title: 'Fun and Games',
+		lines: [
+			'The game began with a click.',
+			'Rules were learned quickly.',
+			'Focus sharpened with play.',
+			'A mistake caused laughter.',
+			'Timing mattered most.',
+			'The challenge increased slowly.',
+			'Victory felt satisfying.',
+			'Defeat taught patience.',
+			'Practice improved results.',
+			'The game ended happily.'
+		]
+	},
+	{
 		id: 'coding-fundamentals',
 		title: 'Coding Fundamentals',
 		type: 'code',
