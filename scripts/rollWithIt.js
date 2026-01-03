@@ -442,6 +442,17 @@ function expandPunctuationForSpeech(text) {
 }
 
 
+function unlockSpeechSynthesis() {
+	if (!window.speechSynthesis) {
+		return;
+	}
+
+	const utterance = new SpeechSynthesisUtterance(' ');
+	utterance.volume = 0;
+
+	window.speechSynthesis.speak(utterance);
+}
+
 
 function queueSpeak(text) {
 	speakChain = speakChain.then(() => speak(text));
@@ -528,9 +539,7 @@ function setScreenState(targetState) {
 
 function speak(text) {
 	return new Promise((resolve) => {
-		if (isSpeaking) {
-			window.speechSynthesis.cancel();
-		}
+	window.speechSynthesis.cancel();
 
 		isSpeaking = true;
 
@@ -995,6 +1004,9 @@ function getSelectedContentSet() {
 }
 
 function startBtnHandler() {
+	unlockSpeechSynthesis();
+	window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+
 	if (gameState !== 'MENU') {
 		return;
 	}
@@ -1177,13 +1189,13 @@ if (contentModeCustom) {
 		}
 	});
 
-if (typingMode === 'sentence' && container) {
-	container.setAttribute('role', 'text');
-}
+	if (typingMode === 'sentence' && container) {
+		container.setAttribute('role', 'text');
+	}
 
-if (typingMode === 'guided' && container) {
-	container.removeAttribute('role');
-}
+	if (typingMode === 'guided' && container) {
+		container.removeAttribute('role');
+	}
 
 }
 
