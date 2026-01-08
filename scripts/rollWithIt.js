@@ -320,6 +320,58 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'rock-bands',
+		title: 'Rock Bands',
+		lines: [
+			'The Beatles',
+			'The Rolling Stones',
+			'Pink Floyd',
+			'Queen',
+			'The Who',
+			'Eagles',
+			'The Beach Boys',
+			'Abba',
+			'Heart',
+			'Steely Dan',
+			'Led Zeppelin',
+			'Bon Jovi',
+			'Van Halen',
+			'ZZ Top',
+			'Negativland',
+			'Foo Fighters',
+			'Green Day',
+			'Red Hot Chili Peppers',
+			'Shinedown',
+			'Nirvana'
+		]
+	},
+	{
+		id: 'musicians',
+		title: 'Famous Musicians',
+		lines: [
+			'John Lennon',
+			'Paul McCartney',
+			'Ringo Starr',
+			'George Harrison',
+			'Les Paul',
+			'Bob Dylan',
+			'Madonna',
+			'Kate Bush',
+			'Michael Jackson',
+			'David Bowie',
+			'Taylor Swift',
+			'Rihanna',
+			'Beyonce',
+			'Lady Gaga',
+			'Imogen Heap',
+			'Beth Gibbons',
+			'Ariana Grande',
+			'Michelle Branch',
+			'Trent Reznor',
+			'Kurt Cobain'
+		]
+	},
+	{
 		id: 'coding-fundamentals',
 		title: 'Coding Fundamentals',
 		type: 'code',
