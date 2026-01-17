@@ -960,6 +960,11 @@ function handleKeyDown(e) {
 		handleCharacterInput('\\');
 		return;
 	}
+	if (e.key === '`') {
+		e.preventDefault();
+		speakLineOnce();
+		return;
+	}
 
 	if (e.key.length === 1) {
 		e.preventDefault();

@@ -20,10 +20,10 @@
 				By Chancey Fleet, edited by Marco Salsiccia.
 			</p>
 			<details class="game-settings">
-				<summary>Jan 8, 2026 Update Log</summary>
+				<summary>Jan 17, 2026 Update Log</summary>
 				<ul>
-				<li>Added Rock Bands and Famous Musicians typing sets thanks to player feedback.</li>
-				<li>Added feedback email link to footer navigation.</li>
+				<li>Set Sentence Mode and Character verbosity as the default game types in Game Settings.</li>
+				<li>You can now press the Tilde key to hear the current line without messing up your accuracy.</li>
 				</ul>
 
 			</details>
@@ -35,7 +35,7 @@
 					Accessible edition: Uses your local system voice synthesis.
 				</p>
 				<ul class="instructions-list">
-					<li>Type the characters you hear.</li>
+					<li>Type the sentence you hear. You can change the speech and mode options in Game Settings.</li>
 					<li>Mistakes trigger a beep and the prompt repeats.</li>
 					<li>You can exit at any time with the backslash key or the End Lesson button.</li>
 					<li>Check out your speed and accuracy results after exiting.</li>
@@ -55,7 +55,7 @@
 				name="typingMode"
 				id="typingModeGuided"
 				value="guided"
-				checked
+
 			>
 			<label for="typingModeGuided">
 				Guided mode (letter by letter)
@@ -68,6 +68,7 @@
 				name="typingMode"
 				id="typingModeSentence"
 				value="sentence"
+				checked
 			>
 			<label for="typingModeSentence">
 				Sentence-first mode (type freely)
@@ -92,6 +93,7 @@
 				name="sentenceSpeechMode"
 				id="sentenceSpeechChars"
 				value="characters"
+				checked
 			>
 			<label for="sentenceSpeechChars">
 				Speak Characters
@@ -128,7 +130,6 @@
 				name="sentenceSpeechMode"
 				id="sentenceSpeechErrors"
 				value="errors"
-				checked
 			>
 			<label for="sentenceSpeechErrors">
 				Speak errors only
@@ -343,7 +344,7 @@
 
 		<p class="footer-copy small muted">
 			&copy;<span id="copyrightYear"></span>
-			Chancey Fleet and Marco Salsiccia, v.1.3.8
+			Chancey Fleet and Marco Salsiccia, v.1.4.0
 		</p>
 	</footer>
 
