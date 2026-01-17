@@ -651,6 +651,130 @@ function getSpokenChar(char) {
 function speakChar(char) {
 	return speak(getSpokenChar(char));
 }
+function playTypewriterBell() {
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	const now = audioCtx.currentTime;
+
+	const strikeOsc = audioCtx.createOscillator();
+	const bodyOsc = audioCtx.createOscillator();
+	const bassOsc = audioCtx.createOscillator();
+
+	const strikeGain = audioCtx.createGain();
+	const bodyGain = audioCtx.createGain();
+	const bassGain = audioCtx.createGain();
+
+	strikeOsc.type = 'triangle';
+	bodyOsc.type = 'sine';
+	bassOsc.type = 'sine';
+
+	strikeOsc.frequency.setValueAtTime(1800, now);
+	bodyOsc.frequency.setValueAtTime(720, now);
+	bassOsc.frequency.setValueAtTime(160, now);
+
+	strikeOsc.detune.setValueAtTime(6, now);
+	bodyOsc.detune.setValueAtTime(-4, now);
+
+	strikeGain.gain.setValueAtTime(0, now);
+	strikeGain.gain.linearRampToValueAtTime(0.15, now + 0.005);
+	strikeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+	bodyGain.gain.setValueAtTime(0, now);
+	bodyGain.gain.linearRampToValueAtTime(0.22, now + 0.02);
+	bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+	bassGain.gain.setValueAtTime(0, now);
+	bassGain.gain.linearRampToValueAtTime(0.12, now + 0.03);
+	bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+	strikeOsc.connect(strikeGain);
+	bodyOsc.connect(bodyGain);
+	bassOsc.connect(bassGain);
+
+	strikeGain.connect(audioCtx.destination);
+	bodyGain.connect(audioCtx.destination);
+	bassGain.connect(audioCtx.destination);
+
+	strikeOsc.start(now);
+	bodyOsc.start(now);
+	bassOsc.start(now);
+
+	strikeOsc.stop(now + 0.3);
+	bodyOsc.stop(now + 1.0);
+	bassOsc.stop(now + 0.6);
+}
+
+function playFinalRickChordProgression() {
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	const now = audioCtx.currentTime;
+
+	const tempo = 114;
+	const beat = 60 / tempo;
+	const pickupSpacing = beat / 2;
+
+	const pickupNotes = [
+		349.23,	// F4
+		392.00,	// G4
+		349.23,	// F4
+		261.63	// C4
+	];
+
+	pickupNotes.forEach((freq, index) => {
+		const startTime = now + index * pickupSpacing;
+
+		const osc = audioCtx.createOscillator();
+		const gain = audioCtx.createGain();
+
+		osc.type = 'sawtooth';
+		osc.frequency.setValueAtTime(freq, startTime);
+
+		gain.gain.setValueAtTime(0, startTime);
+		gain.gain.linearRampToValueAtTime(0.09, startTime + 0.015);
+		gain.gain.exponentialRampToValueAtTime(0.001, startTime + pickupSpacing * 0.9);
+
+		osc.connect(gain);
+		gain.connect(audioCtx.destination);
+
+		osc.start(startTime);
+		osc.stop(startTime + pickupSpacing);
+	});
+
+	const finalStart = now + pickupNotes.length * pickupSpacing;
+
+	const leadOsc = audioCtx.createOscillator();
+	const leadGain = audioCtx.createGain();
+
+	const vibratoOsc = audioCtx.createOscillator();
+	const vibratoGain = audioCtx.createGain();
+
+	leadOsc.type = 'sawtooth';
+	leadOsc.frequency.setValueAtTime(523.25, finalStart); // C5
+
+	vibratoOsc.type = 'sine';
+	vibratoOsc.frequency.setValueAtTime(6.5, finalStart);
+	vibratoGain.gain.setValueAtTime(12, finalStart);
+
+	vibratoOsc.connect(vibratoGain);
+	vibratoGain.connect(leadOsc.frequency);
+
+	leadGain.gain.setValueAtTime(0, finalStart);
+	leadGain.gain.linearRampToValueAtTime(0.14, finalStart + 0.03);
+	leadGain.gain.exponentialRampToValueAtTime(0.001, finalStart + beat * 2);
+
+	leadOsc.connect(leadGain);
+	leadGain.connect(audioCtx.destination);
+
+	leadOsc.start(finalStart);
+	vibratoOsc.start(finalStart);
+
+	leadOsc.stop(finalStart + beat * 2.2);
+	vibratoOsc.stop(finalStart + beat * 2.2);
+}
 
 function playBeep() {
 	if (audioCtx.state === 'suspended') {
@@ -855,15 +979,9 @@ function startTypingLesson() {
 }
 
 async function handleLineDone(lineDoneText) {
-	if (typingMode === 'sentence') {
-		resetSpeakQueue();
-		speak('Phrase complete');
-	} else {
-		resetSpeakQueue();
-		await speak(`Phrase complete: ${lineDoneText}`);
-	}
-
+	playTypewriterBell();
 	if (currentLineIndex >= lines.length) {
+		playFinalRickChordProgression();
 		finishGame();
 		return;
 	}
