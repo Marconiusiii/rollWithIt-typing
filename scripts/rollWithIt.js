@@ -449,6 +449,7 @@ const captureSurface = document.getElementById('keyboard-capture');
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let isSpeaking = false;
+let cachedVoices = [];
 
 let speakChain = Promise.resolve();
 
@@ -513,6 +514,9 @@ function queueSpeak(text) {
 
 function resetSpeakQueue() {
 	speakChain = Promise.resolve();
+	if (window.speechSynthesis) {
+		window.speechSynthesis.cancel();
+	}
 }
 
 function errorKeysToString() {
@@ -588,17 +592,24 @@ function setScreenState(targetState) {
 		footer.setAttribute('inert', '');
 	}
 }
+function loadVoicesOnce() {
+	if (!window.speechSynthesis) {
+		return;
+	}
+
+	const voices = window.speechSynthesis.getVoices();
+	if (voices.length > 0) {
+		cachedVoices = voices;
+	}
+}
 
 function speak(text) {
 	return new Promise((resolve) => {
-	window.speechSynthesis.cancel();
 
 		isSpeaking = true;
 
 		const utterance = new SpeechSynthesisUtterance(text);
-		const voices = window.speechSynthesis.getVoices();
-		const voice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0];
-
+	const voice = cachedVoices.find(v => v.lang && v.lang.startsWith('en')) || cachedVoices[0];
 		if (voice) {
 			utterance.voice = voice;
 		}
@@ -824,10 +835,12 @@ function startTypingLesson() {
 
 	render();
 
-	if (typingMode === 'guided') {
-		promptChar();
-	} else {
-		speakLineOnce();
+	if (shouldSpeakInitialPrompt) {
+		if (typingMode === 'guided') {
+			promptChar();
+		} else {
+			speakLineOnce();
+		}
 	}
 }
 
@@ -900,7 +913,8 @@ async function handleCharacterInput(char) {
 
 	if (typingMode === 'sentence') {
 		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
-			queueSpeak(getSpokenChar(char));
+			resetSpeakQueue();
+speak(getSpokenChar(char));
 		}
 
 		if (sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') {
@@ -1044,6 +1058,7 @@ if (resultsHeading) {
 
 let activeContentTitle = '';
 let speakPunctuation = false;
+let shouldSpeakInitialPrompt = true;
 
 
 function getRandomContentSet() {
@@ -1115,8 +1130,23 @@ function startBtnHandler() {
 	} catch {
 		activatorInput.focus();
 	}
+	shouldSpeakInitialPrompt = false;
 
 	startTypingLesson();
+
+shouldSpeakInitialPrompt = true;
+
+	if (lines.length > 0) {
+		if (typingMode === 'guided') {
+			const firstChar = lines[0][0];
+			if (typeof firstChar === 'string') {
+				window.speechSynthesis.speak(new SpeechSynthesisUtterance(getSpokenChar(firstChar)));
+			}
+		} else {
+			window.speechSynthesis.speak(new SpeechSynthesisUtterance(expandPunctuationForSpeech(lines[0])));
+		}
+	}
+
 }
 
 function exitBtnHandler() {
@@ -1184,6 +1214,33 @@ function initTypingSettings() {
 	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
 	const customContentInput = document.getElementById('customContentInput');
 	const container = document.getElementById('lyrics-display');
+	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+	const sentenceSpeechCharacters = document.getElementById('sentenceSpeechChars');
+
+	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+
+	function syncSentenceSpeechModeFromUI() {
+		if (sentenceSpeechCharacters?.checked) {
+			sentenceSpeechMode = 'characters';
+			return;
+		}
+		if (sentenceSpeechWords?.checked) {
+			sentenceSpeechMode = 'words';
+			return;
+		}
+		if (sentenceSpeechBoth?.checked) {
+			sentenceSpeechMode = 'both';
+			return;
+		}
+		sentenceSpeechMode = 'errors';
+	}
+
+	sentenceSpeechErrors?.addEventListener('change', syncSentenceSpeechModeFromUI);
+	sentenceSpeechCharacters?.addEventListener('change', syncSentenceSpeechModeFromUI);
+	sentenceSpeechWords?.addEventListener('change', syncSentenceSpeechModeFromUI);
+	sentenceSpeechBoth?.addEventListener('change', syncSentenceSpeechModeFromUI);
+
 
 	populateContentSetSelect();
 
@@ -1253,6 +1310,7 @@ if (contentModeCustom) {
 	if (typingMode === 'guided' && container) {
 		container.removeAttribute('role');
 	}
+	syncSentenceSpeechModeFromUI();
 
 }
 
@@ -1301,6 +1359,8 @@ if (typingModeGuided && typingModeGuided.checked) {
 
 
 function init() {
+	loadVoicesOnce();
+	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;
 	initTypingSettings();
 	initInputHooks();
 	initButtons();
