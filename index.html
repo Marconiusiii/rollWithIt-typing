@@ -22,8 +22,13 @@
 			<details class="game-settings">
 				<summary>Jan 17, 2026 Update Log</summary>
 				<ul>
-				<li>Set Sentence Mode and Character verbosity as the default game types in Game Settings.</li>
+				<li>Set Sentence Mode and Character verbosity as the default game types in Typing Settings.</li>
 				<li>You can now press the Tilde key to hear the current line without messing up your accuracy.</li>
+<li>Added All Punctuation and Sound Effects toggles in Typing Settings.</li>
+<li>Replaced "phrase complete" speech with a typewriter ding.</li>
+<li>Made a fun little musical homage when you finish a typing set.</li>
+<li>Refactoring under the hood to ensure that the game works with Google Chrome.</li>
+<li>Added All Punctuation spoken mode, so nothing needs to be changed in system speech settings at the OS level.</li>
 				</ul>
 
 			</details>
@@ -36,6 +41,7 @@
 				</p>
 				<ul class="instructions-list">
 					<li>Type the sentence you hear. You can change the speech and mode options in Game Settings.</li>
+<li>Press the Tilde/Backtick key to repeat the current line.</li>
 					<li>Mistakes trigger a beep and the prompt repeats.</li>
 					<li>You can exit at any time with the backslash key or the End Lesson button.</li>
 					<li>Check out your speed and accuracy results after exiting.</li>
@@ -137,11 +143,30 @@
 	</fieldset>
 
 <fieldset>
-<legend>Punctuation</legend>
-<div class="settingsRow">
-<input type="checkbox" name="punctuation" id="punctToggle">
-<label for="punctToggle">Speak All Punctuation</label>
-</div>
+	<legend>Additional Settings</legend>
+
+	<div class="setting-row">
+		<input
+			type="checkbox"
+			name="punctuation"
+			id="punctToggle"
+		>
+		<label for="punctToggle">
+			Speak All Punctuation
+		</label>
+	</div>
+
+	<div class="setting-row">
+		<input
+			type="checkbox"
+			id="soundEffectsToggle"
+			checked
+		>
+		<label for="soundEffectsToggle">
+			Play sound effects
+		</label>
+	</div>
+
 </fieldset>
 
 </details>
