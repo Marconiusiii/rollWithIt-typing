@@ -484,15 +484,23 @@ function updateProgressStatus() {
 
 function expandPunctuationForSpeech(text) {
 	return text
+		.replace(/“|”/g, ' quote ')
+		.replace(/"/g, ' quote ')
+		.replace(/’/g, ' apostrophe ')
+		.replace(/'/g, ' apostrophe ')
 		.replace(/</g, ' less than ')
 		.replace(/>/g, ' greater than ')
-		.replace(/{/g, ' open brace ')
-		.replace(/}/g, ' close brace ')
-		.replace(/\(/g, ' open parenthesis ')
-		.replace(/\)/g, ' close parenthesis ')
+		.replace(/{/g, ' left brace ')
+		.replace(/}/g, ' right brace ')
+		.replace(/\(/g, ' left parenthesis ')
+		.replace(/\)/g, ' right parenthesis ')
 		.replace(/;/g, ' semicolon ')
+		.replace(/:/g, ' colon ')
 		.replace(/,/g, ' comma ')
-		.replace(/\./g, ' period ');
+		.replace(/\./g, ' period ')
+		.replace(/\?/g, ' question mark ')
+		.replace(/!/g, ' exclamation mark ')
+		.replace(/-/g, ' hyphen ');
 }
 
 function unlockSpeechSynthesis() {
@@ -848,8 +856,8 @@ function startTypingLesson() {
 
 async function handleLineDone(lineDoneText) {
 	if (typingMode === 'sentence') {
-		await speakChain;
-		await speak('Phrase complete');
+		resetSpeakQueue();
+		speak('Phrase complete');
 	} else {
 		resetSpeakQueue();
 		await speak(`Phrase complete: ${lineDoneText}`);
