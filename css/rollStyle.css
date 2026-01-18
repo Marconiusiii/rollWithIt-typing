@@ -315,3 +315,84 @@ body {
 .has-error {
 	border-color: #c62828;
 }
+@media (prefers-color-scheme: light) {
+
+	body {
+		background-color: #f8fafc;
+		color: #020617;
+	}
+
+	.instructions,
+	.metric,
+	.footer-panel {
+		background-color: #ffffff;
+		border-color: #cbd5e1;
+	}
+
+	.app-meta,
+	.metric-label,
+	.footer-copy,
+	.footer-copy.muted {
+		color: #475569;
+	}
+
+	.instructions-lead,
+	.instructions-list,
+	.status-bar,
+	.results-note,
+	.typing-input-label {
+		color: #334155;
+	}
+
+	.typing-display .correct {
+		color: #15803d;
+	}
+
+	.typing-display .current {
+		background-color: #e0f2fe;
+		border-bottom-color: #0284c7;
+	}
+
+	.start-button,
+	.restart-button {
+		background-color: #0284c7;
+		color: #ffffff;
+	}
+
+	.start-button:hover,
+	.restart-button:hover {
+		background-color: #0369a1;
+	}
+
+	.exit-button {
+		color: #020617;
+		border-color: #94a3b8;
+	}
+
+	.exit-button:hover {
+		background-color: #e2e8f0;
+	}
+
+	.typing-input {
+		background-color: #ffffff;
+		color: #020617;
+		border-color: #94a3b8;
+	}
+
+	.footer-links a {
+		color: #0284c7;
+	}
+
+	.footer-links a:hover,
+	.footer-links a:focus {
+		text-decoration: underline;
+	}
+
+	.start-button:focus,
+	.restart-button:focus,
+	.exit-button:focus,
+	.typing-input:focus {
+		outline: 3px solid #0284c7;
+		outline-offset: 3px;
+	}
+}

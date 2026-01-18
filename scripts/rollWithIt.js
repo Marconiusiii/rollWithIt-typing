@@ -389,6 +389,23 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'python-fundamentals',
+		title: 'Python Fundamentals',
+		type: 'code',
+		lines: [
+			'print("Hello, world")',
+			'x = 10',
+			'y = x + 5',
+			'if x > 5:',
+			'for i in range(5):',
+			'def add(a, b):',
+			'return a + b',
+			'mylist = [1, 2, 3]',
+			'myDictionary = {"a": 1, "b": 2}',
+			'result = add(x, y)'
+		]
+	},
+	{
 		id: 'web-basics',
 		title: 'Web Basics',
 		type: 'code',
@@ -493,6 +510,10 @@ function expandPunctuationForSpeech(text) {
 		.replace(/>/g, ' greater than ')
 		.replace(/{/g, ' left brace ')
 		.replace(/}/g, ' right brace ')
+		.replace(/\[/g, ' left bracket ')
+		.replace(/\]/g, ' right bracket ')
+		.replace(/\@/g, ' at ')
+		.replace(/\#/g, ' number sign ')
 		.replace(/\(/g, ' left parenthesis ')
 		.replace(/\)/g, ' right parenthesis ')
 		.replace(/;/g, ' semicolon ')
