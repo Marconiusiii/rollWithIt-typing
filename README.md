@@ -4,14 +4,11 @@ Roll With It Typing is an accessible, browser-based typing practice experience d
 
 The project began as a playful typing experiment and has evolved into a fully usable typing tutor framework with multiple input modes, configurable content, and strong accessibility foundations.
 
-This repository represents the non-joke, extensible version of the project. The original joke-based implementation is preserved separately in its own branch.
+This repository represents the non-joke, extensible version of the project. The original joke-based implementation is preserved separately in its own branch and the working joke version can be found here: [Original Roll With It Typing](https://marconius.com/fun/rollWithIt/)
 
 ## Version
 
-Current release: 1.3.6
-
-This is the first public release of the refactored, accessibility-first version.
-
+Current release: 1.4.1
 ## Features
 
 - Multiple typing modes
@@ -22,6 +19,8 @@ This is the first public release of the refactored, accessibility-first version.
 	- Words
 	- Characters and words
 	- Errors only
+- All Punctuation Spoken toggle
+- Sound Effects toggle
 - Multiple content sources
 	- Built-in typing sets
 	- Randomized set selection
@@ -36,8 +35,6 @@ This is the first public release of the refactored, accessibility-first version.
 	- Error key reporting
 - Keyboard-first interaction
 - Screen reader–friendly semantics
-- No reliance on ARIA where native semantics suffice
-
 ## Accessibility
 
 Accessibility is a core design goal, not an afterthought.
@@ -59,7 +56,7 @@ The project includes a growing collection of built-in typing sets covering topic
 
 - Literature
 - Poetry
-- Coding and web development
+- Coding, Python, and web development
 - SVG and markup
 - Art and design
 - Animals
