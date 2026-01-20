@@ -758,6 +758,12 @@ function queueCharSpeech(char) {
 	});
 }
 
+function speakCharCutover(spokenChar) {
+	cancelSpeechIfSpeaking();
+	resetSpeakQueue();
+	speak(spokenChar);
+}
+
 function speak(text) {
 	return new Promise((resolve) => {
 		isSpeaking = true;
@@ -820,7 +826,7 @@ function replayExpectedChar() {
 		return;
 	}
 
-	queueCharSpeech(`${getSpokenChar(expected)} `);
+	speakCharCutover(`${getSpokenChar(expected)} `);
 }
 
 function playTypewriterBell() {
@@ -1210,9 +1216,7 @@ async function handleLineDone(lineDoneText) {
 
 	if (!isFinalLine) {
 		playTypewriterBell();
-	}
-
-	if (isFinalLine) {
+	} else {
 		playFinalRickChordProgression();
 		setTimeout(() => {
 			finishGame();
@@ -1222,11 +1226,11 @@ async function handleLineDone(lineDoneText) {
 
 	render();
 
-		if (typingMode === 'guided') {
-			promptChar();
-		} else {
-			queueCharSpeech(`${getSpokenChar(expected)} `);
-		}
+	if (typingMode === 'guided') {
+		await promptChar();
+	} else {
+		await speakLineOnce();
+	}
 }
 
 async function handleCharacterInput(char) {
@@ -1257,16 +1261,13 @@ if (!matches) {
 	errorKeys.add(expected);
 	playBeep();
 
-	// Only speak the expected character once per stuck position.
-	// This prevents Chrome from getting hammered into silence during error cascades.
 	if (lastErrorCharIndexSpoken !== currentCharIndex) {
 		lastErrorCharIndexSpoken = currentCharIndex;
 
 		if (typingMode === 'guided') {
 			promptChar();
 		} else {
-			resetSpeakQueue();
-			queueCharSpeech(expected);
+			speakCharCutover(`${getSpokenChar(expected)} `);
 		}
 	}
 
@@ -1282,7 +1283,7 @@ if (!matches) {
 
 	if (typingMode === 'sentence') {
 		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
-			queueCharSpeech(`${getSpokenChar(char)} `);
+			speakCharCutover(`${getSpokenChar(char)} `);
 		}
 
 		if (sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') {
