@@ -499,6 +499,9 @@ function updateProgressStatus() {
 
 	progressStatus.textContent = `${completed} out of ${total} lines complete`;
 }
+function waitForSpeechReset() {
+	return new Promise(resolve => setTimeout(resolve, 50));
+}
 
 function expandPunctuationForSpeech(text) {
 	return text
@@ -931,6 +934,7 @@ async function speakLineOnce() {
 	}
 
 	resetSpeakQueue();
+	await waitForSpeechReset();
 	await speak(line);
 }
 
@@ -1340,18 +1344,6 @@ function startBtnHandler() {
 
 	startTypingLesson();
 
-	if (lines.length > 0) {
-		if (typingMode === 'guided') {
-			const firstChar = lines[0][0];
-			if (typeof firstChar === 'string') {
-				resetSpeakQueue();
-				speak(getSpokenChar(firstChar));
-			}
-		} else {
-			resetSpeakQueue();
-			speak(lines[0]);
-		}
-	}
 }
 
 function exitBtnHandler() {
