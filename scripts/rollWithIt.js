@@ -463,6 +463,19 @@ let shouldSpeakInitialPrompt = true;
 let charSpeechBuffer = '';
 let charSpeechFramePending = false;
 
+const isChrome =
+	navigator.vendor === 'Google Inc.' &&
+	/Chrome/.test(navigator.userAgent) &&
+	!/Edg/.test(navigator.userAgent);
+
+function chromeSpeechIsBusy() {
+	if (!isChrome || !window.speechSynthesis) {
+		return false;
+	}
+
+	return window.speechSynthesis.speaking || window.speechSynthesis.pending;
+}
+
 let speakAllPunctuation = false;
 let soundEffectsEnabled = true;
 let lastErrorCharIndexSpoken = null;
@@ -486,6 +499,12 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let isSpeaking = false;
 let cachedVoices = [];
 let speakChain = Promise.resolve();
+let inputChain = Promise.resolve();
+
+function queueCharacterInput(char) {
+	inputChain = inputChain.then(() => handleCharacterInput(char));
+	return inputChain;
+}
 
 const punctuationMap = {
 	"'": "apostrophe",
@@ -735,8 +754,7 @@ function queueCharSpeech(char) {
 		const toSpeak = charSpeechBuffer;
 		charSpeechBuffer = '';
 
-		resetSpeakQueue();
-		speak(toSpeak);
+		queueSpeak(toSpeak);
 	});
 }
 
@@ -802,9 +820,7 @@ function replayExpectedChar() {
 		return;
 	}
 
-	resetSpeakQueue();
-	queueCharSpeech(expected);
-
+	queueCharSpeech(`${getSpokenChar(expected)} `);
 }
 
 function playTypewriterBell() {
@@ -1206,11 +1222,11 @@ async function handleLineDone(lineDoneText) {
 
 	render();
 
-	if (typingMode === 'guided') {
-		promptChar();
-	} else {
-		speakLineOnce();
-	}
+		if (typingMode === 'guided') {
+			promptChar();
+		} else {
+			queueCharSpeech(`${getSpokenChar(expected)} `);
+		}
 }
 
 async function handleCharacterInput(char) {
@@ -1241,14 +1257,15 @@ if (!matches) {
 	errorKeys.add(expected);
 	playBeep();
 
-	if (typingMode === 'guided') {
-		if (lastErrorCharIndexSpoken !== currentCharIndex) {
-			lastErrorCharIndexSpoken = currentCharIndex;
+	// Only speak the expected character once per stuck position.
+	// This prevents Chrome from getting hammered into silence during error cascades.
+	if (lastErrorCharIndexSpoken !== currentCharIndex) {
+		lastErrorCharIndexSpoken = currentCharIndex;
+
+		if (typingMode === 'guided') {
 			promptChar();
-		}
-	} else {
-		if (lastErrorCharIndexSpoken !== currentCharIndex) {
-			lastErrorCharIndexSpoken = currentCharIndex;
+		} else {
+			resetSpeakQueue();
 			queueCharSpeech(expected);
 		}
 	}
@@ -1265,9 +1282,7 @@ if (!matches) {
 
 	if (typingMode === 'sentence') {
 		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
-			cancelSpeechIfSpeaking();
-			resetSpeakQueue();
-			speak(getSpokenChar(char));
+			queueCharSpeech(`${getSpokenChar(char)} `);
 		}
 
 		if (sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') {
@@ -1312,7 +1327,7 @@ function handleBeforeInput(e) {
 		e.preventDefault();
 
 		for (const ch of e.data) {
-			handleCharacterInput(ch);
+			queueCharacterInput(ch);
 		}
 	}
 }
@@ -1322,11 +1337,12 @@ function handleKeyDown(e) {
 		return;
 	}
 
-	if (e.key === '\\') {
+		if (e.key === '\\') {
 		e.preventDefault();
-		handleCharacterInput('\\');
+		queueCharacterInput('\\');
 		return;
 	}
+
 // Shift + backtick (~): replay expected character
 if (e.key === '~') {
 	e.preventDefault();
@@ -1342,7 +1358,7 @@ if (e.key === '~') {
 
 	if (e.key.length === 1) {
 		e.preventDefault();
-		handleCharacterInput(e.key);
+		queueCharacterInput(e.key);
 	}
 }
 
