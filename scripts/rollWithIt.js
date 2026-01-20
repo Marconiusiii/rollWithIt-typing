@@ -764,6 +764,22 @@ function getSpokenChar(char) {
 function speakChar(char) {
 	return speak(getSpokenChar(char));
 }
+
+function replayExpectedChar() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	const expected = line[currentCharIndex];
+	if (typeof expected !== 'string') {
+		return;
+	}
+
+	resetSpeakQueue();
+	speakChar(expected);
+}
+
 function playTypewriterBell() {
 	if (!soundEffectsEnabled) {
 		return;
@@ -1285,6 +1301,12 @@ function handleKeyDown(e) {
 		handleCharacterInput('\\');
 		return;
 	}
+// Shift + backtick (~): replay expected character
+if (e.key === '~') {
+	e.preventDefault();
+	replayExpectedChar();
+	return;
+}
 
 	if (e.key === '`') {
 		e.preventDefault();
