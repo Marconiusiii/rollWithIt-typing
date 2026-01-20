@@ -456,6 +456,7 @@ let typingMode = 'guided';
 let sentenceSpeechMode = 'errors';
 let contentMode = 'original';
 let selectedVoiceName = null;
+let selectedVoiceRatePercent = 50;
 
 let activeContentTitle = '';
 let speakPunctuation = false;
@@ -494,12 +495,21 @@ const punctuationMap = {
 	" ": "space"
 };
 
+function getSystemLanguagePrefix() {
+	const lang = navigator.language || navigator.userLanguage;
+	if (!lang) {
+		return 'en';
+	}
+	return lang.split('-')[0];
+}
+
 function populateVoiceSelect() {
 	const select = document.getElementById('voiceSelect');
 	if (!select || !window.speechSynthesis) {
 		return;
 	}
 
+	const systemLang = getSystemLanguagePrefix();
 	const voices = window.speechSynthesis.getVoices();
 
 	select.innerHTML = '';
@@ -509,7 +519,28 @@ function populateVoiceSelect() {
 	defaultOption.textContent = 'System default';
 	select.appendChild(defaultOption);
 
-	voices.forEach(voice => {
+	const matchingVoices = voices.filter(voice => {
+		if (!voice.lang) {
+			return false;
+		}
+
+		return voice.lang.startsWith(systemLang);
+	});
+
+	const fallbackVoices = voices.filter(voice => {
+		if (!voice.lang) {
+			return false;
+		}
+
+		return voice.lang.startsWith('en');
+	});
+
+	const voicesToUse =
+		matchingVoices.length > 0
+			? matchingVoices
+			: fallbackVoices;
+
+	voicesToUse.forEach(voice => {
 		const option = document.createElement('option');
 		option.value = voice.name;
 		option.textContent = `${voice.name} (${voice.lang})`;
@@ -521,6 +552,12 @@ function populateVoiceSelect() {
 	}
 }
 
+function getSpeechRateFromPercent(percent) {
+	const minRate = 0.6;
+	const maxRate = 1.6;
+
+	return minRate + (percent / 100) * (maxRate - minRate);
+}
 
 function updateProgressStatus() {
 	if (!progressStatus || !lines || lines.length === 0) {
@@ -567,6 +604,8 @@ function unlockSpeechSynthesis() {
 	}
 
 	const utterance = new SpeechSynthesisUtterance(' ');
+	utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
+
 	utterance.volume = 0;
 
 	window.speechSynthesis.speak(utterance);
@@ -678,6 +717,7 @@ function speak(text) {
 		}
 
 		const utterance = new SpeechSynthesisUtterance(textToSpeak);
+utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
 
 		let voice = null;
 
@@ -1458,6 +1498,36 @@ function initTypingSettings() {
 		});
 	}
 
+const voiceRateNumber = document.getElementById('voiceRateNumber');
+const playVoiceSampleBtn = document.getElementById('playVoiceSample');
+
+if (voiceRateNumber) {
+	voiceRateNumber.value = selectedVoiceRatePercent;
+
+	voiceRateNumber.addEventListener('input', () => {
+		let value = parseInt(voiceRateNumber.value, 10);
+
+		if (isNaN(value)) {
+			return;
+		}
+
+		value = Math.max(0, Math.min(100, value));
+		selectedVoiceRatePercent = value;
+
+		localStorage.setItem(
+			'preferredVoiceRatePercent',
+			selectedVoiceRatePercent
+		);
+	});
+}
+
+if (playVoiceSampleBtn) {
+	playVoiceSampleBtn.addEventListener('click', () => {
+		resetSpeakQueue();
+		speak('Welcome to Roll With It Typing!');
+	});
+}
+
 	const soundEffectsToggle = document.getElementById('soundEffectsToggle');
 
 	if (soundEffectsToggle) {
@@ -1626,6 +1696,10 @@ function initTypingSettings() {
 
 function init() {
 	selectedVoiceName = localStorage.getItem('preferredVoice');
+	const savedRatePercent = localStorage.getItem('preferredVoiceRatePercent');
+	if (savedRatePercent !== null) {
+		selectedVoiceRatePercent = parseInt(savedRatePercent, 10);
+	}
 	loadVoicesOnce();
 	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;
 

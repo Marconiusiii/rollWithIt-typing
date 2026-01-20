@@ -174,7 +174,7 @@
 
 </fieldset>
 <fieldset>
-	<legend>Speech Voice</legend>
+	<legend>Speech Settings</legend>
 
 	<div class="setting-row">
 		<label for="voiceSelect">
@@ -187,8 +187,31 @@
 			</option>
 		</select>
 	</div>
-</fieldset>
 
+	<div class="setting-row">
+		<label for="voiceRateNumber">
+			Speech Rate
+		</label>
+
+		<input
+			type="number"
+			id="voiceRateNumber"
+			min="0"
+			max="100"
+			step="1"
+			value="50"
+		>
+
+
+		<button
+			type="button"
+			id="playVoiceSample"
+		>
+			Play Voice
+		</button>
+	</div>
+
+</fieldset>
 </details>
 
 <details class="content-settings">
