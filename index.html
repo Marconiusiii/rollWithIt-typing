@@ -48,10 +48,11 @@
 				<ul class="instructions-list">
 					<li>Type the sentence you hear. You can change the speech and mode options in Game Settings.</li>
 <li>Press the Tilde/Backtick key to repeat the current line.</li>
-					<li>Mistakes trigger a beep and the prompt repeats.</li>
+					<li>Mistakes trigger a beep and the prompt repeats. Press Shift+~ key to repeat the current error or to play the character you currently need to type.</li>
 					<li>You can exit at any time with the backslash key or the End Lesson button.</li>
 					<li>Check out your speed and accuracy results after exiting.</li>
 					<li>Typing Settings: Guided Mode speaks the character you have to type one by one. Sentence Mode speaks the whole sentence first before you type.</li>
+<li><strong>Note:</strong> Keeping character verbosity on is currently unstable for Chrome for faster typers. Blame Google for this.</li>
 					<li>To tease your family, friends, teachers, and enemies, the original Rick Roll With It Typing game can be found here: <a href="https://marconius.com/fun/rollWithIt/">Rick Roll With It Typing</a></li>
 				</ul>
 
@@ -104,7 +105,6 @@
 				name="sentenceSpeechMode"
 				id="sentenceSpeechChars"
 				value="characters"
-				checked
 			>
 			<label for="sentenceSpeechChars">
 				Speak Characters
@@ -141,6 +141,7 @@
 				name="sentenceSpeechMode"
 				id="sentenceSpeechErrors"
 				value="errors"
+				checked
 			>
 			<label for="sentenceSpeechErrors">
 				Speak errors only
