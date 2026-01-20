@@ -460,6 +460,8 @@ let selectedVoiceRatePercent = 30;
 let activeContentTitle = '';
 let speakPunctuation = false;
 let shouldSpeakInitialPrompt = true;
+let charSpeechBuffer = '';
+let charSpeechFramePending = false;
 
 let speakAllPunctuation = false;
 let soundEffectsEnabled = true;
@@ -714,6 +716,30 @@ function loadVoicesOnce() {
 	}
 }
 
+function queueCharSpeech(char) {
+	charSpeechBuffer += char;
+
+	if (charSpeechFramePending) {
+		return;
+	}
+
+	charSpeechFramePending = true;
+
+	requestAnimationFrame(() => {
+		charSpeechFramePending = false;
+
+		if (!charSpeechBuffer) {
+			return;
+		}
+
+		const toSpeak = charSpeechBuffer;
+		charSpeechBuffer = '';
+
+		resetSpeakQueue();
+		speak(toSpeak);
+	});
+}
+
 function speak(text) {
 	return new Promise((resolve) => {
 		isSpeaking = true;
@@ -777,7 +803,8 @@ function replayExpectedChar() {
 	}
 
 	resetSpeakQueue();
-	speakChar(expected);
+	queueCharSpeech(expected);
+
 }
 
 function playTypewriterBell() {
@@ -1222,8 +1249,7 @@ if (!matches) {
 	} else {
 		if (lastErrorCharIndexSpoken !== currentCharIndex) {
 			lastErrorCharIndexSpoken = currentCharIndex;
-			resetSpeakQueue();
-			await speakChar(expected);
+			queueCharSpeech(expected);
 		}
 	}
 
