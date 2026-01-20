@@ -1,3 +1,5 @@
+// Roll With It Typing Tutor by Chancey Fleet and Marco Salsiccia
+
 const typingContentSets = [
 	{
 		id: 'classic-lit',
@@ -441,6 +443,8 @@ const typingContentSets = [
 	}
 ];
 
+//App States
+
 let lyricsText = '';
 
 let lines = [];
@@ -451,6 +455,7 @@ let gameState = 'MENU';
 let typingMode = 'guided';
 let sentenceSpeechMode = 'errors';
 let contentMode = 'original';
+let selectedVoiceName = null;
 
 let activeContentTitle = '';
 let speakPunctuation = false;
@@ -488,6 +493,34 @@ const punctuationMap = {
 	"?": "question mark",
 	" ": "space"
 };
+
+function populateVoiceSelect() {
+	const select = document.getElementById('voiceSelect');
+	if (!select || !window.speechSynthesis) {
+		return;
+	}
+
+	const voices = window.speechSynthesis.getVoices();
+
+	select.innerHTML = '';
+
+	const defaultOption = document.createElement('option');
+	defaultOption.value = '';
+	defaultOption.textContent = 'System default';
+	select.appendChild(defaultOption);
+
+	voices.forEach(voice => {
+		const option = document.createElement('option');
+		option.value = voice.name;
+		option.textContent = `${voice.name} (${voice.lang})`;
+		select.appendChild(option);
+	});
+
+	if (selectedVoiceName) {
+		select.value = selectedVoiceName;
+	}
+}
+
 
 function updateProgressStatus() {
 	if (!progressStatus || !lines || lines.length === 0) {
@@ -630,6 +663,7 @@ function loadVoicesOnce() {
 	const voices = window.speechSynthesis.getVoices();
 	if (voices.length > 0) {
 		cachedVoices = voices;
+		populateVoiceSelect();
 	}
 }
 
@@ -645,10 +679,19 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(textToSpeak);
 
-		const voice = cachedVoices.find(v => v.lang && v.lang.startsWith('en')) || cachedVoices[0];
-		if (voice) {
-			utterance.voice = voice;
+		let voice = null;
+
+		if (selectedVoiceName) {
+			voice = cachedVoices.find(v => v.name === selectedVoiceName);
 		}
+
+		if (!voice) {
+			voice = cachedVoices.find(v => v.lang && v.lang.startsWith('en')) || cachedVoices[0];
+		}
+
+if (voice) {
+	utterance.voice = voice;
+}
 
 		utterance.onend = () => {
 			isSpeaking = false;
@@ -1406,6 +1449,14 @@ function initTypingSettings() {
 			speakAllPunctuation = punctToggle.checked;
 		});
 	}
+	const voiceSelect = document.getElementById('voiceSelect');
+
+	if (voiceSelect) {
+		voiceSelect.addEventListener('change', () => {
+			selectedVoiceName = voiceSelect.value;
+			localStorage.setItem('preferredVoice', selectedVoiceName);
+		});
+	}
 
 	const soundEffectsToggle = document.getElementById('soundEffectsToggle');
 
@@ -1574,6 +1625,7 @@ function initTypingSettings() {
 }
 
 function init() {
+	selectedVoiceName = localStorage.getItem('preferredVoice');
 	loadVoicesOnce();
 	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;
 
