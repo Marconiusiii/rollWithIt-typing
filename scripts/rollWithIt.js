@@ -618,7 +618,10 @@ function queueSpeak(text) {
 
 function resetSpeakQueue() {
 	speakChain = Promise.resolve();
-	if (window.speechSynthesis) {
+}
+
+function cancelSpeechIfSpeaking() {
+	if (window.speechSynthesis && isSpeaking) {
 		window.speechSynthesis.cancel();
 	}
 }
@@ -1015,7 +1018,7 @@ async function speakLineOnce() {
 	if (!line) {
 		return;
 	}
-
+	cancelSpeechIfSpeaking();
 	resetSpeakQueue();
 	await waitForSpeechReset();
 	await speak(line);
@@ -1028,6 +1031,7 @@ async function promptChar() {
 	}
 
 	const char = line[currentCharIndex];
+	cancelSpeechIfSpeaking();
 	resetSpeakQueue();
 	await speak(getSpokenChar(char));
 }
@@ -1196,6 +1200,7 @@ async function handleCharacterInput(char) {
 		if (typingMode === 'guided') {
 			promptChar();
 		} else {
+//			cancelSpeechIfSpeaking();
 			resetSpeakQueue();
 			await speakChar(expected);
 		}
@@ -1211,6 +1216,7 @@ async function handleCharacterInput(char) {
 
 	if (typingMode === 'sentence') {
 		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
+			cancelSpeechIfSpeaking();
 			resetSpeakQueue();
 			speak(getSpokenChar(char));
 		}
