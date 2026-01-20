@@ -498,9 +498,10 @@ const punctuationMap = {
 function getSystemLanguagePrefix() {
 	const lang = navigator.language || navigator.userLanguage;
 	if (!lang) {
-		return 'en';
+		return null;
 	}
-	return lang.split('-')[0];
+
+	return lang.split('-')[0].toLowerCase();
 }
 
 function populateVoiceSelect() {
@@ -509,8 +510,8 @@ function populateVoiceSelect() {
 		return;
 	}
 
-	const systemLang = getSystemLanguagePrefix();
 	const voices = window.speechSynthesis.getVoices();
+	const systemLang = getSystemLanguagePrefix();
 
 	select.innerHTML = '';
 
@@ -519,28 +520,21 @@ function populateVoiceSelect() {
 	defaultOption.textContent = 'System default';
 	select.appendChild(defaultOption);
 
-	const matchingVoices = voices.filter(voice => {
-		if (!voice.lang) {
-			return false;
+	let filteredVoices = voices;
+
+	if (systemLang) {
+		const systemLangVoices = voices.filter(v =>
+			typeof v.lang === 'string' &&
+			v.lang.toLowerCase().startsWith(systemLang)
+		);
+
+		// Only apply filter if it yields something
+		if (systemLangVoices.length > 0) {
+			filteredVoices = systemLangVoices;
 		}
+	}
 
-		return voice.lang.startsWith(systemLang);
-	});
-
-	const fallbackVoices = voices.filter(voice => {
-		if (!voice.lang) {
-			return false;
-		}
-
-		return voice.lang.startsWith('en');
-	});
-
-	const voicesToUse =
-		matchingVoices.length > 0
-			? matchingVoices
-			: fallbackVoices;
-
-	voicesToUse.forEach(voice => {
+	filteredVoices.forEach(voice => {
 		const option = document.createElement('option');
 		option.value = voice.name;
 		option.textContent = `${voice.name} (${voice.lang})`;
