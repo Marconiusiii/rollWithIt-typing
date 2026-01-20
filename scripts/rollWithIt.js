@@ -447,6 +447,11 @@ const typingContentSets = [
 
 let lyricsText = '';
 
+const isChrome =
+	navigator.vendor === 'Google Inc.' &&
+	/Chrome/.test(navigator.userAgent) &&
+	!/Edg/.test(navigator.userAgent);
+
 let lines = [];
 let currentLineIndex = 0;
 let currentCharIndex = 0;
@@ -462,11 +467,6 @@ let speakPunctuation = false;
 let shouldSpeakInitialPrompt = true;
 let charSpeechBuffer = '';
 let charSpeechFramePending = false;
-
-const isChrome =
-	navigator.vendor === 'Google Inc.' &&
-	/Chrome/.test(navigator.userAgent) &&
-	!/Edg/.test(navigator.userAgent);
 
 function chromeSpeechIsBusy() {
 	if (!isChrome || !window.speechSynthesis) {
@@ -756,6 +756,48 @@ function queueCharSpeech(char) {
 
 		queueSpeak(toSpeak);
 	});
+}
+function hardResetSpeechSynthesis() {
+	if (!window.speechSynthesis) {
+		return;
+	}
+
+	// Cancel anything currently happening
+	try {
+		window.speechSynthesis.cancel();
+	} catch (e) {}
+
+	// Clear internal JS state
+	isSpeaking = false;
+	speakChain = Promise.resolve();
+
+	// Chrome-specific kick: enqueue and immediately cancel
+	// This often reinitializes the engine without restart
+	try {
+		const kick = new SpeechSynthesisUtterance(' ');
+		kick.volume = 0;
+		window.speechSynthesis.speak(kick);
+		window.speechSynthesis.cancel();
+	} catch (e) {}
+
+	// Optional audible confirmation for users
+	// (only if speech is actually alive)
+	setTimeout(() => {
+		try {
+			const confirm = new SpeechSynthesisUtterance('Speech reset.');
+			confirm.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
+
+			const voice = selectedVoiceName
+				? resolveCurrentVoiceByName(selectedVoiceName)
+				: null;
+
+			if (voice) {
+				confirm.voice = voice;
+			}
+
+			window.speechSynthesis.speak(confirm);
+		} catch (e) {}
+	}, 100);
 }
 
 function speakCharCutover(spokenChar) {
@@ -1337,6 +1379,12 @@ function handleKeyDown(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
+	// Ctrl + Shift + R : reset speech (Chrome only)
+if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
+	e.preventDefault();
+	hardResetSpeechSynthesis();
+	return;
+}
 
 		if (e.key === '\\') {
 		e.preventDefault();
@@ -1537,6 +1585,18 @@ function initButtons() {
 	const startLessonButton = document.getElementById('startLessonButton');
 	const exitLessonButton = document.getElementById('exitLessonButton');
 	const closeResultsButton = document.getElementById('closeResultsButton');
+const resetSpeechButton = document.getElementById('resetSpeechButton');
+
+if (resetSpeechButton) {
+	if (isChrome) {
+		resetSpeechButton.addEventListener('click', () => {
+			hardResetSpeechSynthesis();
+		});
+	} else {
+		// Hide in non-Chrome browsers
+		resetSpeechButton.style.display = 'none';
+	}
+}
 
 	if (startLessonButton) {
 		startLessonButton.addEventListener('click', startBtnHandler);
