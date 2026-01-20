@@ -456,8 +456,7 @@ let typingMode = 'guided';
 let sentenceSpeechMode = 'errors';
 let contentMode = 'original';
 let selectedVoiceName = null;
-let selectedVoiceRatePercent = 50;
-
+let selectedVoiceRatePercent = 30;
 let activeContentTitle = '';
 let speakPunctuation = false;
 let shouldSpeakInitialPrompt = true;
@@ -546,11 +545,22 @@ function populateVoiceSelect() {
 	}
 }
 
+function resolveCurrentVoiceByName(name) {
+	if (!name || !window.speechSynthesis) {
+		return null;
+	}
+
+	const voices = window.speechSynthesis.getVoices();
+	return voices.find(v => v.name === name) || null;
+}
+
+
 function getSpeechRateFromPercent(percent) {
 	const minRate = 0.6;
-	const maxRate = 1.6;
+	const maxRate = 2.5;
 
-	return minRate + (percent / 100) * (maxRate - minRate);
+	const clampedPercent = Math.max(0, Math.min(100, percent));
+	return minRate + (clampedPercent / 100) * (maxRate - minRate);
 }
 
 function updateProgressStatus() {
@@ -716,20 +726,17 @@ function speak(text) {
 		const utterance = new SpeechSynthesisUtterance(textToSpeak);
 utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
 
-		let voice = null;
+let voice = null;
 
-		if (selectedVoiceName) {
-			voice = cachedVoices.find(v => v.name === selectedVoiceName);
-		}
-
-		if (!voice) {
-			voice = cachedVoices.find(v => v.lang && v.lang.startsWith('en')) || cachedVoices[0];
-		}
+if (selectedVoiceName) {
+	voice = resolveCurrentVoiceByName(selectedVoiceName);
+}
 
 if (voice) {
 	utterance.voice = voice;
 }
-
+// If voice is null, do NOT set utterance.voice at all
+// Chrome will safely fall back to system default
 		utterance.onend = () => {
 			isSpeaking = false;
 			resolve();
@@ -1025,7 +1032,6 @@ async function promptChar() {
 	}
 
 	const char = line[currentCharIndex];
-	cancelSpeechIfSpeaking();
 	resetSpeakQueue();
 	await speak(getSpokenChar(char));
 }
