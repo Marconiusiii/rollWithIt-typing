@@ -463,6 +463,7 @@ let shouldSpeakInitialPrompt = true;
 
 let speakAllPunctuation = false;
 let soundEffectsEnabled = true;
+let lastErrorCharIndexSpoken = null;
 
 let totalKeystrokes = 0;
 let errors = 0;
@@ -1192,27 +1193,33 @@ async function handleCharacterInput(char) {
 
 	totalKeystrokes++;
 
-	if (!matches) {
-		errors++;
-		errorKeys.add(expected);
-		playBeep();
+if (!matches) {
+	errors++;
+	errorKeys.add(expected);
+	playBeep();
 
-		if (typingMode === 'guided') {
+	if (typingMode === 'guided') {
+		if (lastErrorCharIndexSpoken !== currentCharIndex) {
+			lastErrorCharIndexSpoken = currentCharIndex;
 			promptChar();
-		} else {
-//			cancelSpeechIfSpeaking();
+		}
+	} else {
+		if (lastErrorCharIndexSpoken !== currentCharIndex) {
+			lastErrorCharIndexSpoken = currentCharIndex;
 			resetSpeakQueue();
 			await speakChar(expected);
 		}
-
-		return;
 	}
+
+	return;
+}
 
 	if (currentCharIndex === 0 && typingStartTime === null) {
 		typingStartTime = Date.now();
 	}
 
 	currentCharIndex++;
+	lastErrorCharIndexSpoken = null;
 
 	if (typingMode === 'sentence') {
 		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
