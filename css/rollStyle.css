@@ -78,30 +78,61 @@ body {
 	outline-offset: 3px;
 }
 
+fieldset.hidden {
+	display: none;
+}
+details {
+	background-color: #020617;
+	border: 2px solid #334155;
+	border-radius: 0.75rem;
+	padding: 0.75rem 1rem;
+	margin-bottom: 1rem;
+}
+
+summary {
+	cursor: pointer;
+	font-weight: 600;
+	color: #38bdf8;
+}
+
+details[open] summary {
+	margin-bottom: 0.75rem;
+}
+
+details summary:focus {
+	outline: 3px solid #38bdf8;
+	outline-offset: 3px;
+}
+
 /* Game screen */
 
 .game-screen {
 	text-align: center;
 }
 
+.typing-display span {
+	display: inline-block;
+}
 .typing-display {
 	font-size: 2rem;
 	font-weight: 600;
-	margin-bottom: 1rem;
-	line-height: 1.4;
-}
-
-.typing-display span {
-	display: inline-block;
+	letter-spacing: 0.03em;
 }
 
 .typing-display .correct {
 	color: #22c55e;
+	text-decoration: underline;
+	text-decoration-thickness: 0.15em;
+	text-underline-offset: 0.2em;
 }
 
 .typing-display .current {
 	background-color: #1e3a8a;
-	border-bottom: 4px solid #38bdf8;
+	color: #ffffff;
+	padding: 0 0.15em;
+	border-radius: 0.2em;
+	outline: 2px solid #38bdf8;
+	outline-offset: 2px;
 }
 
 .cursor {
@@ -132,11 +163,12 @@ body {
 	max-width: 32rem;
 	margin: 0 auto 0.75rem;
 	padding: 0.75rem;
-	font-size: 1.1rem;
+	font-size: 1rem;
 	border-radius: 0.5rem;
-	border: 2px solid #334155;
-	background-color: #0f172a;
-	color: #f8fafc;
+	border: 2px dashed #334155;
+	background-color: #020617;
+	color: #cbd5f5;
+	text-align: center;
 }
 
 .typing-input:focus {
@@ -343,15 +375,30 @@ body {
 	.typing-input-label {
 		color: #334155;
 	}
+details {
+	background-color: #ffffff;
+	border-color: #cbd5e1;
+}
 
-	.typing-display .correct {
-		color: #15803d;
-	}
+summary {
+	color: #0284c7;
+}
 
-	.typing-display .current {
-		background-color: #e0f2fe;
-		border-bottom-color: #0284c7;
-	}
+details summary:focus {
+	outline-color: #0284c7;
+}
+
+.typing-display .correct {
+	color: #15803d;
+	text-decoration: underline;
+	text-decoration-thickness: 0.15em;
+}
+
+.typing-display .current {
+	background-color: #e0f2fe;
+	color: #020617;
+	outline: 2px solid #0284c7;
+}
 
 	.start-button,
 	.restart-button {

@@ -1791,18 +1791,26 @@ if (playVoiceSampleBtn) {
 		contentMode = 'set';
 		contentSetFieldset.disabled = false;
 		customContentFieldset.disabled = true;
+		contentSetFieldset.classList.remove('hidden');
+		customContentFieldset.classList.add('hidden');
+
 	}
 
 	if (contentModeOriginal && contentModeOriginal.checked) {
 		contentMode = 'original';
 		contentSetFieldset.disabled = true;
 		customContentFieldset.disabled = true;
+		contentSetFieldset.classList.add('hidden');
+		customContentFieldset.classList.add('hidden');
+
 	}
 
 	if (contentModeCustom && contentModeCustom.checked) {
 		contentMode = 'custom';
 		contentSetFieldset.disabled = true;
 		customContentFieldset.disabled = false;
+		contentSetFieldset.classList.add('hidden');
+		customContentFieldset.classList.remove('hidden');
 	}
 
 	if (typingModeSentence && typingModeSentence.checked) {
