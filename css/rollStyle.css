@@ -78,9 +78,24 @@ body {
 	outline-offset: 3px;
 }
 
-fieldset.hidden {
-	display: none;
+/*
+fieldset[disabled] {
+	opacity: 0.35;
 }
+*/
+fieldset[disabled] {
+	opacity: 0.35;
+	max-height: 0;
+	overflow: hidden;
+	padding-top: 0;
+	padding-bottom: 0;
+	border-width: 0;
+}
+
+fieldset[disabled] * {
+	pointer-events: none;
+}
+
 details {
 	background-color: #020617;
 	border: 2px solid #334155;

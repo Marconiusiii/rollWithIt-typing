@@ -857,6 +857,22 @@ function speakChar(char) {
 	return speak(getSpokenChar(char));
 }
 
+function speakExpectedWord() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	const word = getExpectedWord(line, currentCharIndex);
+	if (!word) {
+		return;
+	}
+
+	cancelSpeechIfSpeaking();
+	resetSpeakQueue();
+	speak(word);
+}
+
 function replayExpectedChar() {
 	const line = lines[currentLineIndex];
 	if (!line) {
@@ -1110,6 +1126,25 @@ function isWordEnd(line, index) {
 	}
 
 	return line[index - 1] !== ' ' && line[index] === ' ';
+}
+
+function getExpectedWord(line, charIndex) {
+	if (!line || charIndex >= line.length) {
+		return '';
+	}
+
+	let start = charIndex;
+	let end = charIndex;
+
+	while (start > 0 && line[start - 1] !== ' ') {
+		start--;
+	}
+
+	while (end < line.length && line[end] !== ' ') {
+		end++;
+	}
+
+	return line.slice(start, end).trim();
 }
 
 function getLastWord(line, endIndex) {
@@ -1383,6 +1418,11 @@ function handleKeyDown(e) {
 if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
 	e.preventDefault();
 	hardResetSpeechSynthesis();
+	return;
+}
+if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'w') {
+	e.preventDefault();
+	speakExpectedWord();
 	return;
 }
 
@@ -1791,26 +1831,18 @@ if (playVoiceSampleBtn) {
 		contentMode = 'set';
 		contentSetFieldset.disabled = false;
 		customContentFieldset.disabled = true;
-		contentSetFieldset.classList.remove('hidden');
-		customContentFieldset.classList.add('hidden');
-
 	}
 
 	if (contentModeOriginal && contentModeOriginal.checked) {
 		contentMode = 'original';
 		contentSetFieldset.disabled = true;
 		customContentFieldset.disabled = true;
-		contentSetFieldset.classList.add('hidden');
-		customContentFieldset.classList.add('hidden');
-
 	}
 
 	if (contentModeCustom && contentModeCustom.checked) {
 		contentMode = 'custom';
 		contentSetFieldset.disabled = true;
 		customContentFieldset.disabled = false;
-		contentSetFieldset.classList.add('hidden');
-		customContentFieldset.classList.remove('hidden');
 	}
 
 	if (typingModeSentence && typingModeSentence.checked) {
