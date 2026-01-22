@@ -664,19 +664,39 @@ function errorKeysToString() {
 }
 
 function populateContentSetSelect() {
-	const select = document.getElementById('contentSetSelect');
-	if (!select) {
-		return;
+	contentSetSelect.innerHTML = '';
+
+	const nonCodeSets = [];
+	const codeSets = [];
+
+	for (const set of typingContentSets) {
+		if (set.type === 'code') {
+			codeSets.push(set);
+		} else {
+			nonCodeSets.push(set);
+		}
 	}
 
-	select.innerHTML = '';
-
-	typingContentSets.forEach((set) => {
+	for (const set of nonCodeSets) {
 		const option = document.createElement('option');
 		option.value = set.id;
 		option.textContent = set.title;
-		select.appendChild(option);
-	});
+		contentSetSelect.appendChild(option);
+	}
+
+	if (codeSets.length > 0) {
+		const codingGroup = document.createElement('optgroup');
+		codingGroup.label = 'Coding';
+
+		for (const set of codeSets) {
+			const option = document.createElement('option');
+			option.value = set.id;
+			option.textContent = set.title;
+			codingGroup.appendChild(option);
+		}
+
+		contentSetSelect.appendChild(codingGroup);
+	}
 }
 
 function setScreenState(targetState) {
@@ -1552,8 +1572,14 @@ function finishGame() {
 }
 
 function getRandomContentSet() {
-	const index = Math.floor(Math.random() * typingContentSets.length);
-	return typingContentSets[index];
+	const eligibleSets = typingContentSets.filter(set => set.type !== 'code');
+
+	if (eligibleSets.length === 0) {
+		return null;
+	}
+
+	const index = Math.floor(Math.random() * eligibleSets.length);
+	return eligibleSets[index];
 }
 
 function getSelectedContentSet() {
