@@ -1420,7 +1420,7 @@ if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
 	hardResetSpeechSynthesis();
 	return;
 }
-if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'w') {
+if (e.key === '|') {
 	e.preventDefault();
 	speakExpectedWord();
 	return;
