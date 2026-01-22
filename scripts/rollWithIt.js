@@ -576,6 +576,13 @@ function resolveCurrentVoiceByName(name) {
 	return voices.find(v => v.name === name) || null;
 }
 
+function getRemainingLineText(line, charIndex) {
+	if (!line || charIndex >= line.length) {
+		return '';
+	}
+
+	return line.slice(charIndex);
+}
 
 function getSpeechRateFromPercent(percent) {
 	const minRate = 0.6;
@@ -855,6 +862,22 @@ function getSpokenChar(char) {
 
 function speakChar(char) {
 	return speak(getSpokenChar(char));
+}
+
+function speakRemainingLine() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	const remaining = getRemainingLineText(line, currentCharIndex);
+	if (!remaining.trim()) {
+		return;
+	}
+
+	cancelSpeechIfSpeaking();
+	resetSpeakQueue();
+	speak(remaining);
 }
 
 function speakExpectedWord() {
@@ -1420,9 +1443,16 @@ if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
 	hardResetSpeechSynthesis();
 	return;
 }
+
 if (e.key === '|') {
 	e.preventDefault();
 	speakExpectedWord();
+	return;
+}
+
+if (e.key === '?') {
+	e.preventDefault();
+	speakRemainingLine();
 	return;
 }
 
