@@ -97,7 +97,7 @@ const typingContentSets = [
 	},
 {
 	id: "spyThriller",
-	name: "Spy Thriller",
+	title: "Spy Thriller",
 	lines: [
 		"The message was hidden inside an ordinary postcard.",
 		"She memorized the exit routes before sitting down.",
@@ -273,7 +273,7 @@ const typingContentSets = [
 	},
 {
 	id: "travel",
-	name: "Travel",
+	title: "Travel",
 	lines: [
 		"Airports are busy places full of announcements, luggage, and long lines.",
 		"I checked my passport twice before leaving the house.",
@@ -289,7 +289,7 @@ const typingContentSets = [
 },
 {
 	id: "gardening",
-	name: "Gardening",
+	title: "Gardening",
 	lines: [
 		"The soil was dark, loose, and ready for planting.",
 		"Tomatoes grow best with steady water and full sun.",
@@ -321,7 +321,7 @@ const typingContentSets = [
 	},
 {
 	id: "biology",
-	name: "Biology",
+	title: "Biology",
 	lines: [
 		"Cells divide through a carefully controlled process.",
 		"DNA carries instructions for growth and repair.",
