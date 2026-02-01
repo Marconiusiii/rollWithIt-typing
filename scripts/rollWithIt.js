@@ -1168,11 +1168,15 @@ function finishGame() {
 	let desertLabel = document.getElementById('desertLabel');
 	const correctKeystrokes = Math.max(0, totalKeystrokes - errors);
 
-	let wpm = 0;
+	let wpm = null;
 
-	if (totalTypingTime > 0 && correctKeystrokes > 0) {
-		const mins = totalTypingTime / 60000;
-		wpm = Math.round((correctKeystrokes / 5) / mins);
+	if (contentMode !== 'training') {
+		if (totalTypingTime > 0 && correctKeystrokes > 0) {
+			const mins = totalTypingTime / 60000;
+			wpm = Math.round((correctKeystrokes / 5) / mins);
+		} else {
+			wpm = 0;
+		}
 	}
 
 	const acc = Math.round(
@@ -1185,8 +1189,13 @@ function finishGame() {
 	const desertVal = document.getElementById('desert-val');
 
 	if (wpmVal) {
-		wpmVal.textContent = `${wpm}`;
+		if (contentMode === 'training') {
+			wpmVal.textContent = 'WPM is not calculated in Training Mode.';
+		} else {
+			wpmVal.textContent = `${wpm}`;
+		}
 	}
+
 	if (accVal) {
 		accVal.textContent = `${acc}%`;
 	}
@@ -1205,7 +1214,10 @@ function finishGame() {
 	const wpmNote = document.getElementById('wpmNote');
 
 	if (wpmNote) {
-		if (totalTypingTime === 0 || correctKeystrokes === 0) {
+		if (contentMode === 'training') {
+			wpmNote.textContent = '';
+			wpmNote.classList.add('hidden');
+		} else if (totalTypingTime === 0 || correctKeystrokes === 0) {
 			wpmNote.textContent = 'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
 			wpmNote.classList.remove('hidden');
 		} else {
