@@ -119,6 +119,116 @@ details summary:focus {
 	outline-offset: 3px;
 }
 
+details.game-settings {
+	padding: 1rem 1.25rem;
+}
+
+details.game-settings > h2 {
+	margin: 0.75rem 0 0.75rem;
+	font-size: 1.35rem;
+	line-height: 1.2;
+	color: #f8fafc;
+}
+
+details.game-settings details > summary {
+	font-size: 1rem;
+}
+
+details.game-settings table {
+	width: 100%;
+	max-width: 100%;
+	border-collapse: separate;
+	border-spacing: 0.4rem 0.5rem;
+	margin: 0;
+}
+
+details.game-settings caption {
+	text-align: left;
+	font-weight: 700;
+	color: #cbd5f5;
+	padding: 0.25rem 0 0.75rem;
+}
+
+details.game-settings tr {
+	vertical-align: middle;
+}
+
+details.game-settings th[scope="row"] {
+	text-align: left;
+	white-space: nowrap;
+	font-weight: 700;
+	color: #94a3b8;
+	padding: 0.5rem 0.25rem 0.5rem 0;
+}
+
+details.game-settings td {
+	text-align: center;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+	font-size: 0.95rem;
+	line-height: 1.1;
+	color: #e2e8f0;
+	background-color: #0b1220;
+	border: 2px solid #334155;
+	border-radius: 0.75rem;
+	padding: 0.65rem 0.6rem;
+	min-width: 3.1rem;
+	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+details.game-settings td[colspan] {
+	min-width: unset;
+}
+
+details.game-settings td:focus-within {
+	outline: 3px solid #38bdf8;
+	outline-offset: 3px;
+}
+
+details.game-settings details {
+	margin-top: 0.75rem;
+}
+
+details.game-settings details[open] {
+	padding-bottom: 1rem;
+}
+
+details.game-settings details[open] summary {
+	margin-bottom: 0.75rem;
+}
+
+@media (max-width: 720px) {
+	details.game-settings {
+		overflow-x: auto;
+	}
+
+	details.game-settings table {
+		min-width: 44rem;
+	}
+
+	details.game-settings th[scope="row"] {
+		padding-right: 0.5rem;
+	}
+}
+
+details.game-settings details > summary {
+	margin: 0;
+	padding: 0.5rem 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+}
+
+details.game-settings details > h3 {
+	margin: 0.5rem 0 0.75rem;
+	font-size: 1.15rem;
+	line-height: 1.25;
+	font-weight: 700;
+	color: #e5e7eb;
+}
+
+details.game-settings details[open] > summary {
+	margin-bottom: 0;
+}
+
 /* Game screen */
 
 .game-screen {
@@ -401,6 +511,33 @@ summary {
 
 details summary:focus {
 	outline-color: #0284c7;
+}
+
+details.game-settings > h2 {
+	color: #020617;
+}
+
+details.game-settings caption {
+	color: #334155;
+}
+
+details.game-settings th[scope="row"] {
+	color: #475569;
+}
+
+details.game-settings td {
+	color: #0f172a;
+	background-color: #ffffff;
+	border-color: #cbd5e1;
+	box-shadow: 0 2px 0 rgba(2, 6, 23, 0.12);
+}
+
+details.game-settings td:focus-within {
+	outline-color: #0284c7;
+}
+
+details.game-settings details > h3 {
+	color: #020617;
 }
 
 .typing-display .correct {

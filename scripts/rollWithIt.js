@@ -1190,7 +1190,7 @@ function finishGame() {
 
 	if (wpmVal) {
 		if (contentMode === 'training') {
-			wpmVal.textContent = 'WPM is not calculated in Training Mode.';
+			wpmVal.textContent = 'Not calculated in Training Mode.';
 		} else {
 			wpmVal.textContent = `${wpm}`;
 		}
