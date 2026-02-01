@@ -1033,7 +1033,7 @@ if (!matches) {
 	return;
 }
 
-	if (currentCharIndex === 0 && typingStartTime === null) {
+	if (typingStartTime === null) {
 		typingStartTime = Date.now();
 	}
 
@@ -1144,16 +1144,21 @@ function finishGame() {
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
 
-	if (activeContentTitle) {
+	if (contentMode === 'training') {
+		document.title = 'Training Results - Roll With It';
+	} else if (activeContentTitle) {
 		document.title = `${activeContentTitle} Typing Results - Roll With It`;
 	} else {
 		document.title = 'Typing Results - Roll With It';
 	}
 
 	const resultsHeading = document.getElementById('resultsHeading');
+
 	if (resultsHeading) {
-		if (activeContentTitle) {
-			resultsHeading.textContent = `${activeContentTitle} Typing Results`;
+		if (contentMode === 'training') {
+			resultsHeading.textContent = 'Training Results';
+		} else if (activeContentTitle) {
+			resultsHeading.textContent = `${activeContentTitle} Results`;
 		} else {
 			resultsHeading.textContent = 'Typing Results';
 		}
