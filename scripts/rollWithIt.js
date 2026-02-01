@@ -849,8 +849,16 @@ async function promptChar() {
 	}
 
 	const char = line[currentCharIndex];
+
 	resetSpeakQueue();
-	await speak(getSpokenChar(char));
+
+	let spoken = getSpokenChar(char);
+
+	if (speakAllPunctuation || speakPunctuation) {
+		spoken = expandPunctuationForSpeech(spoken);
+	}
+
+	await speak(spoken);
 }
 
 function sanitizeText(rawText) {
@@ -1222,9 +1230,57 @@ function getSelectedContentSet() {
 	return typingContentSets.find(set => set.id === select.value) || null;
 }
 
+function shuffleArray(arr) {
+	for (let i = arr.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		const tmp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = tmp;
+	}
+	return arr;
+}
+
+function findTypingTrainingRowById(rowId) {
+	if (!rowId || typeof typingTrainingSets !== 'object' || !typingTrainingSets) {
+		return null;
+	}
+
+	for (const layout of Object.values(typingTrainingSets)) {
+		if (!layout || !layout.rows) {
+			continue;
+		}
+
+		for (const row of Object.values(layout.rows)) {
+			if (row && row.id === rowId) {
+				return {
+					layout,
+					row
+				};
+			}
+		}
+	}
+
+	return null;
+}
+
+function buildTrainingLessonText(rowDef) {
+	if (!rowDef || !Array.isArray(rowDef.keys)) {
+		return '';
+	}
+
+	const keys = rowDef.keys.slice();
+
+	if (rowDef.mode === 'random') {
+		shuffleArray(keys);
+	}
+
+	// One character per line, so users do not have to type spaces as separators.
+	// This guarantees all keys in the row are covered exactly once per lesson.
+	return keys.join('\n');
+}
+
 function startBtnHandler() {
 	unlockSpeechSynthesis();
-
 
 	if (gameState !== 'MENU') {
 		return;
@@ -1265,6 +1321,20 @@ function startBtnHandler() {
 		speakPunctuation = false;
 	}
 
+	if (contentMode === 'training') {
+		const rowId = typingTrainingSelect ? typingTrainingSelect.value : '';
+		const found = findTypingTrainingRowById(rowId);
+
+		if (!found || !found.row) {
+			speak('No typing training set is selected.');
+			return;
+		}
+
+		lyricsText = buildTrainingLessonText(found.row);
+		activeContentTitle = `${found.layout.name} - ${found.row.name}`;
+		speakPunctuation = true;
+	}
+
 	gameState = 'PLAYING';
 	setScreenState('PLAYING');
 
@@ -1279,7 +1349,6 @@ function startBtnHandler() {
 	}
 
 	startTypingLesson();
-
 }
 
 function exitBtnHandler() {
@@ -1497,6 +1566,22 @@ if (playVoiceSampleBtn) {
 		});
 	}
 
+	const contentModeTraining = document.getElementById('contentModeTraining');
+	const typingTrainingFieldset = document.getElementById('typingTrainingFieldset');
+
+	if (contentModeTraining) {
+		contentModeTraining.addEventListener('change', () => {
+			if (contentModeTraining.checked) {
+				contentMode = 'training';
+				contentSetFieldset.disabled = true;
+				customContentFieldset.disabled = true;
+				if (typingTrainingFieldset) {
+					typingTrainingFieldset.disabled = false;
+				}
+			}
+		});
+	}
+
 	if (contentModeCustom) {
 		contentModeCustom.addEventListener('change', () => {
 			if (contentModeCustom.checked) {
@@ -1524,6 +1609,15 @@ if (playVoiceSampleBtn) {
 		contentMode = 'original';
 		contentSetFieldset.disabled = true;
 		customContentFieldset.disabled = true;
+	}
+
+	if (contentModeTraining && contentModeTraining.checked) {
+		contentMode = 'training';
+		contentSetFieldset.disabled = true;
+		customContentFieldset.disabled = true;
+		if (typingTrainingFieldset) {
+			typingTrainingFieldset.disabled = false;
+		}
 	}
 
 	if (contentModeCustom && contentModeCustom.checked) {
