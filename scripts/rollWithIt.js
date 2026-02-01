@@ -23,6 +23,15 @@ let shouldSpeakInitialPrompt = true;
 let charSpeechBuffer = '';
 let charSpeechFramePending = false;
 
+const contentModeRadios = document.querySelectorAll('input[name="contentMode"]');
+
+const contentSetFieldset = document.getElementById('contentSetFieldset');
+const customContentFieldset = document.getElementById('customContentFieldset');
+const typingTrainingFieldset = document.getElementById('typingTrainingFieldset');
+
+const typingTrainingSelect = document.getElementById('typingTrainingSelect');
+
+
 function chromeSpeechIsBusy() {
 	if (!isChrome || !window.speechSynthesis) {
 		return false;
@@ -121,6 +130,73 @@ function populateVoiceSelect() {
 		select.value = selectedVoiceName;
 	}
 }
+
+function populateTypingTrainingSelect() {
+	if (!typingTrainingSelect) {
+		return;
+	}
+
+	typingTrainingSelect.innerHTML = '';
+
+	Object.values(typingTrainingSets).forEach(layout => {
+		const optgroup = document.createElement('optgroup');
+		optgroup.label = layout.name;
+
+		Object.values(layout.rows).forEach(row => {
+			const option = document.createElement('option');
+			option.value = row.id;
+			option.textContent = row.name;
+			optgroup.appendChild(option);
+		});
+
+		typingTrainingSelect.appendChild(optgroup);
+	});
+}
+
+function updateContentModeUIFromRadios() {
+	let selectedMode = null;
+
+	contentModeRadios.forEach(radio => {
+		if (radio.checked) {
+			selectedMode = radio.value;
+		}
+	});
+
+	if (!selectedMode) {
+		return;
+	}
+
+	// Default: disable everything
+	if (contentSetFieldset) {
+		contentSetFieldset.disabled = true;
+	}
+	if (customContentFieldset) {
+		customContentFieldset.disabled = true;
+	}
+	if (typingTrainingFieldset) {
+		typingTrainingFieldset.disabled = true;
+	}
+
+	// Enable only the active mode
+	if (selectedMode === 'set' && contentSetFieldset) {
+		contentSetFieldset.disabled = false;
+	}
+
+	if (selectedMode === 'custom' && customContentFieldset) {
+		customContentFieldset.disabled = false;
+	}
+
+	if (selectedMode === 'training' && typingTrainingFieldset) {
+		typingTrainingFieldset.disabled = false;
+	}
+}
+
+contentModeRadios.forEach(radio => {
+	radio.addEventListener('change', () => {
+		updateContentModeUIFromRadios();
+	});
+});
+
 
 function resolveCurrentVoiceByName(name) {
 	if (!name || !window.speechSynthesis) {
@@ -1491,6 +1567,9 @@ function init() {
 	}
 	loadVoicesOnce();
 	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;
+
+	populateTypingTrainingSelect();
+	updateContentModeUIFromRadios();
 
 	initTypingSettings();
 	initInputHooks();
