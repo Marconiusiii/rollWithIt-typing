@@ -243,6 +243,18 @@
 	</label>
 </div>
 
+<div class="setting-row">
+	<input
+		type="radio"
+		name="contentMode"
+		id="contentModeTraining"
+		value="training"
+	>
+	<label for="contentModeTraining">
+		Typing training
+	</label>
+</div>
+
 		<div class="setting-row">
 			<input
 				type="radio"
@@ -302,6 +314,88 @@
 	</fieldset>
 </details>
 
+<details class="game-settings">
+<summary>Keyboard Layout Reference</summary>
+
+<details>
+<summary>QWERTY Reference</summary>
+
+<table>
+<caption>QWERTY Layout</caption>
+<tr>
+<th scope="row">Number Row</th>
+<td>` and ~</td>
+<td>1 and !</td>
+<td>2 and @</td>
+<td>3 and #</td>
+<td>4 and $</td>
+<td>5 and %</td>
+<td>6 and ^</td>
+<td>7 and &</td>
+<td>8 and *</td>
+<td>9 and (</td>
+<td>0 and )</td>
+<td>- and _</td>
+<td>= and +</td>
+<td>Delete Key</td>
+</tr>
+<tr>
+<th scope="row">First Row</th>
+<td>Tab Key</td>
+<td>q</td>
+<td>w</td>
+<td>e</td>
+<td>r</td>
+<td>t</td>
+<td>y</td>
+<td>u</td>
+<td>i</td>
+<td>o</td>
+<td>p</td>
+<td>[ and {</td>
+<td>] and }</td>
+<td>\ and |</td>
+</tr>
+<tr>
+<th scope="row">Second Row</th>
+<td>Caps Lock</td>
+<td>a</td>
+<td>s</td>
+<td>d</td>
+<td>f</td>
+<td>g</td>
+<td>h</td>
+<td>j</td>
+<td>k</td>
+<td>l</td>
+<td>; and :</td>
+<td>' and "</td>
+<td colspan="2">Return Key</td>
+</tr>
+<tr>
+<th scope="row">Third Row</th>
+<td colspan="2">Shift Key</td>
+<td>z</td>
+<td>x</td>
+<td>c</td>
+<td>v</td>
+<td>b</td>
+<td>n</td>
+<td>m</td>
+<td>, and &lt;</td>
+<td>. and &gt;</td>
+<td>/ and ?</td>
+<td colspan="2">Shift Key</td>
+</tr>
+</table>
+</details>
+
+<details>
+<summary>Dvorak Reference</summary>
+
+</details>
+
+</details>
 
 				<button
 					id="startLessonButton"
@@ -423,9 +517,11 @@
 
 		<p class="footer-copy small muted">
 			&copy;<span id="copyrightYear"></span>
-			Chancey Fleet and Marco Salsiccia, v.1.5.6
+			Chancey Fleet and Marco Salsiccia, v.1.6.0
 		</p>
 	</footer>
+
+<script src="scripts/typingTrainingSets.js"></script>
 <script src="scripts/typingSets.js"></script>
 	<script src="scripts/rollWithIt.js"></script>
 </body>
