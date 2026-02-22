@@ -28,6 +28,7 @@ const contentModeRadios = document.querySelectorAll('input[name="contentMode"]')
 const contentSetFieldset = document.getElementById('contentSetFieldset');
 const customContentFieldset = document.getElementById('customContentFieldset');
 const typingTrainingFieldset = document.getElementById('typingTrainingFieldset');
+const contentSetSelect = document.getElementById('contentSetSelect');
 
 const typingTrainingSelect = document.getElementById('typingTrainingSelect');
 
@@ -295,6 +296,10 @@ function errorKeysToString() {
 }
 
 function populateContentSetSelect() {
+	if (!contentSetSelect) {
+		return;
+	}
+
 	contentSetSelect.innerHTML = '';
 
 	const nonCodeSets = [];
@@ -974,7 +979,7 @@ function startTypingLesson() {
 	}
 }
 
-async function handleLineDone(lineDoneText) {
+async function handleLineDone() {
 	const isFinalLine = currentLineIndex >= lines.length;
 
 	if (!isFinalLine) {
@@ -1065,13 +1070,11 @@ if (!matches) {
 			typingStartTime = null;
 		}
 
-		const lineDoneText = line;
-
 		currentLineIndex++;
 		updateProgressStatus();
 		currentCharIndex = 0;
 
-		await handleLineDone(lineDoneText);
+		await handleLineDone();
 		return;
 	}
 
@@ -1314,6 +1317,11 @@ function startBtnHandler() {
 
 	if (contentMode === 'original') {
 		const set = getRandomContentSet();
+		if (!set) {
+			speak('No typing content sets are available.');
+			return;
+		}
+
 		lyricsText = set.lines.join('\n');
 		activeContentTitle = set.title;
 		speakPunctuation = set.type === 'code';

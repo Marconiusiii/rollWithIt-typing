@@ -8,7 +8,7 @@ This repository represents the non-joke, extensible version of the project. The 
 
 ## Version
 
-Current release: 1.4.1
+Current release: 1.7.0
 ## Features
 
 - Multiple typing modes
