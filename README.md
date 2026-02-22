@@ -107,10 +107,10 @@ Planned future enhancements include:
 
 ## License
 
-License information to be added.
+MIT. See `LICENSE`.
 
 ## Credits
 
-Created by Chancey fleet and maintained by Marco Salsiccia.
+Created by Chancey Fleet and maintained by Marco Salsiccia.
 
 Built with a focus on accessibility, usability, and careful iteration.

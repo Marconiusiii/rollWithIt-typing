@@ -95,22 +95,22 @@ const typingContentSets = [
 			'End transmission.'
 		]
 	},
-{
-	id: "spyThriller",
-	title: "Spy Thriller",
-	lines: [
-		"The message was hidden inside an ordinary postcard.",
-		"She memorized the exit routes before sitting down.",
-		"Every reflection in the glass felt like surveillance.",
-		"The briefcase changed hands without a word being spoken.",
-		"His phone vibrated once, then went silent at the worst moment.",
-		"A coded phrase was repeated on the radio, calm and precise.",
-		"She swapped jackets in the hallway and disappeared into the crowd.",
-		"The safe house door was unlocked, which meant someone had been there.",
-		"He copied the file, erased the trace, and left the lights unchanged.",
-		"Trust was the most dangerous thing in the room."
-	]
-},
+	{
+		id: 'spyThriller',
+		title: 'Spy Thriller',
+		lines: [
+			'The message was hidden inside an ordinary postcard.',
+			'She memorized the exit routes before sitting down.',
+			'Every reflection in the glass felt like surveillance.',
+			'The briefcase changed hands without a word being spoken.',
+			'His phone vibrated once, then went silent at the worst moment.',
+			'A coded phrase was repeated on the radio, calm and precise.',
+			'She swapped jackets in the hallway and disappeared into the crowd.',
+			'The safe house door was unlocked, which meant someone had been there.',
+			'He copied the file, erased the trace, and left the lights unchanged.',
+			'Trust was the most dangerous thing in the room.'
+		]
+	},
 	{
 		id: 'philosophy',
 		title: 'Philosophy',
@@ -271,38 +271,38 @@ const typingContentSets = [
 			'The meal ended happily.'
 		]
 	},
-{
-	id: "travel",
-	title: "Travel",
-	lines: [
-		"Airports are busy places full of announcements, luggage, and long lines.",
-		"I checked my passport twice before leaving the house.",
-		"The train arrived late, but the view from the window was worth the wait.",
-		"A small cafe near the hotel served strong coffee and fresh bread.",
-		"I asked for a late checkout and a quiet room away from the elevator.",
-		"Before the day trip, I filled a bottle of water and packed sunscreen.",
-		"The map showed three routes, so I chose the simplest one to navigate.",
-		"I kept small bills for tips and saved receipts for the travel log.",
-		"The museum opened at ten, and we arrived early to avoid the crowd.",
-		"At the end of the day, I charged my phone and reviewed tomorrow's plan."
-	]
-},
-{
-	id: "gardening",
-	title: "Gardening",
-	lines: [
-		"The soil was dark, loose, and ready for planting.",
-		"Tomatoes grow best with steady water and full sun.",
-		"I trimmed the dead branches to help the plant recover.",
-		"Compost adds nutrients back into tired ground.",
-		"I pulled weeds after the rain, when the roots were easier to remove.",
-		"Mulch kept the moisture in and reduced heat stress on the seedlings.",
-		"I planted basil near the tomatoes to save space and deter pests.",
-		"The hose nozzle was set to a gentle spray to protect young leaves.",
-		"I checked the undersides of leaves for aphids and tiny eggs.",
-		"Gardening rewards attention, timing, and care."
-	]
-},
+	{
+		id: 'travel',
+		title: 'Travel',
+		lines: [
+			'Airports are busy places full of announcements, luggage, and long lines.',
+			'I checked my passport twice before leaving the house.',
+			'The train arrived late, but the view from the window was worth the wait.',
+			'A small cafe near the hotel served strong coffee and fresh bread.',
+			'I asked for a late checkout and a quiet room away from the elevator.',
+			'Before the day trip, I filled a bottle of water and packed sunscreen.',
+			'The map showed three routes, so I chose the simplest one to navigate.',
+			'I kept small bills for tips and saved receipts for the travel log.',
+			'The museum opened at ten, and we arrived early to avoid the crowd.',
+			'At the end of the day, I charged my phone and reviewed tomorrow\'s plan.'
+		]
+	},
+	{
+		id: 'gardening',
+		title: 'Gardening',
+		lines: [
+			'The soil was dark, loose, and ready for planting.',
+			'Tomatoes grow best with steady water and full sun.',
+			'I trimmed the dead branches to help the plant recover.',
+			'Compost adds nutrients back into tired ground.',
+			'I pulled weeds after the rain, when the roots were easier to remove.',
+			'Mulch kept the moisture in and reduced heat stress on the seedlings.',
+			'I planted basil near the tomatoes to save space and deter pests.',
+			'The hose nozzle was set to a gentle spray to protect young leaves.',
+			'I checked the undersides of leaves for aphids and tiny eggs.',
+			'Gardening rewards attention, timing, and care.'
+		]
+	},
 	{
 		id: 'space',
 		title: 'Space and Planets',
@@ -319,22 +319,22 @@ const typingContentSets = [
 			'The universe typed quietly.'
 		]
 	},
-{
-	id: "biology",
-	title: "Biology",
-	lines: [
-		"Cells divide through a carefully controlled process.",
-		"DNA carries instructions for growth and repair.",
-		"Enzymes speed up chemical reactions in living organisms.",
-		"Plants convert sunlight into energy through photosynthesis.",
-		"Proteins fold into shapes that determine how they function.",
-		"Neurons send signals using electrical impulses and chemical messengers.",
-		"Homeostasis keeps internal conditions stable despite external changes.",
-		"Natural selection favors traits that improve survival and reproduction.",
-		"Microbes can be helpful, harmful, or essential to an ecosystem.",
-		"Biology explains how structure and function are connected."
-	]
-},
+	{
+		id: 'biology',
+		title: 'Biology',
+		lines: [
+			'Cells divide through a carefully controlled process.',
+			'DNA carries instructions for growth and repair.',
+			'Enzymes speed up chemical reactions in living organisms.',
+			'Plants convert sunlight into energy through photosynthesis.',
+			'Proteins fold into shapes that determine how they function.',
+			'Neurons send signals using electrical impulses and chemical messengers.',
+			'Homeostasis keeps internal conditions stable despite external changes.',
+			'Natural selection favors traits that improve survival and reproduction.',
+			'Microbes can be helpful, harmful, or essential to an ecosystem.',
+			'Biology explains how structure and function are connected.'
+		]
+	},
 	{
 		id: 'history',
 		title: 'History',
