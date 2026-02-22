@@ -741,6 +741,10 @@ function playFinalRickChordProgression() {
 }
 
 function playBeep() {
+	if (!soundEffectsEnabled) {
+		return;
+	}
+
 	if (audioCtx.state === 'suspended') {
 		audioCtx.resume();
 	}
