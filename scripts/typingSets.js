@@ -80,6 +80,22 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'romance',
+		title: 'Romance',
+		lines: [
+			'Their eyes met across the crowded room.',
+			'A quiet smile said more than words.',
+			'Rain tapped softly against the window.',
+			'They walked home under one umbrella.',
+			'Every small gesture carried meaning.',
+			'A letter arrived tied with ribbon.',
+			'They laughed at the same old joke.',
+			'The evening ended with warm tea.',
+			'Morning light found them still talking.',
+			'Love grew in ordinary moments.'
+		]
+	},
+	{
 		id: 'science-fiction',
 		title: 'Science Fiction',
 		lines: [
@@ -269,6 +285,38 @@ const typingContentSets = [
 			'Spices filled the air.',
 			'Cooking felt familiar.',
 			'The meal ended happily.'
+		]
+	},
+	{
+		id: 'disability-rights',
+		title: 'Disability Rights',
+		lines: [
+			'Disability rights are civil rights.',
+			'Access should never be optional.',
+			'Policy changes shape daily life.',
+			'Representation improves real outcomes.',
+			'Independent living is a core principle.',
+			'Inclusion requires action, not promises.',
+			'Legal protections must be enforced.',
+			'Community voices lead stronger advocacy.',
+			'Equal opportunity benefits everyone.',
+			'Progress depends on sustained effort.'
+		]
+	},
+	{
+		id: 'digital-accessibility',
+		title: 'Digital Accessibility',
+		lines: [
+			'Good headings help everyone navigate faster.',
+			'Labels should clearly describe each input.',
+			'Keyboard support is essential, not extra.',
+			'Color should never be the only signal.',
+			'Alt text should describe purpose, not decoration.',
+			'Captions make media usable in more contexts.',
+			'Focus order should follow visual logic.',
+			'Error messages should explain how to recover.',
+			'Readable contrast improves comfort and clarity.',
+			'Accessible design starts early, not at the end.'
 		]
 	},
 	{
@@ -470,6 +518,23 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'html-fundamentals',
+		title: 'HTML Fundamentals',
+		type: 'code',
+		lines: [
+			`<!doctype html>`,
+			`<html lang="en">`,
+			`<head><title>Example</title></head>`,
+			`<main id="app">`,
+			`<h1>Accessible Page</h1>`,
+			`<label for="email">Email</label>`,
+			`<input id="email" type="email" required>`,
+			`<button type="submit">Send</button>`,
+			`<a href="#content">Skip to content</a>`,
+			`</main>`
+		]
+	},
+	{
 		id: 'web-basics',
 		title: 'Web Basics',
 		type: 'code',
@@ -484,6 +549,40 @@ const typingContentSets = [
 			`console.log(event.target);`,
 			`button.disabled = true;`,
 			`main.appendChild(section);`
+		]
+	},
+	{
+		id: 'macos-terminal-fundamentals',
+		title: 'macOS Terminal Fundamentals',
+		type: 'code',
+		lines: [
+			`pwd`,
+			`ls -la`,
+			`cd ~/Documents`,
+			`mkdir practice-folder`,
+			`touch notes.txt`,
+			`cat notes.txt`,
+			`grep -n "error" app.log`,
+			`chmod +x script.sh`,
+			`open .`,
+			`rm notes.txt`
+		]
+	},
+	{
+		id: 'svg-basics',
+		title: 'SVG Basics',
+		type: 'code',
+		lines: [
+			`<svg viewBox="0 0 100 100">`,
+			`<circle cx="50" cy="50" r="40" />`,
+			`<rect x="10" y="10" width="80" height="80" />`,
+			`<line x1="0" y1="0" x2="100" y2="100" />`,
+			`<path d="M10 10 L90 10" />`,
+			`<text x="50" y="50">Hello</text>`,
+			`fill="none"`,
+			`stroke="black"`,
+			`stroke-width="2"`,
+			`</svg>`
 		]
 	},
 	{
@@ -511,23 +610,6 @@ const typingContentSets = [
 			`type randomtext.txt`,
 			`pause>nul`,
 			`del randomtext.txt`
-		]
-	},
-	{
-		id: 'svg-basics',
-		title: 'SVG Basics',
-		type: 'code',
-		lines: [
-			`<svg viewBox="0 0 100 100">`,
-			`<circle cx="50" cy="50" r="40" />`,
-			`<rect x="10" y="10" width="80" height="80" />`,
-			`<line x1="0" y1="0" x2="100" y2="100" />`,
-			`<path d="M10 10 L90 10" />`,
-			`<text x="50" y="50">Hello</text>`,
-			`fill="none"`,
-			`stroke="black"`,
-			`stroke-width="2"`,
-			`</svg>`
 		]
 	}
 ];
