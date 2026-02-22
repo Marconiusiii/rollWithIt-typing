@@ -76,6 +76,8 @@ const punctuationMap = {
 	",": "comma",
 	".": "period",
 	"-": "hyphen",
+	"/": "slash",
+	"\\": "backslash",
 	"!": "exclamation mark",
 	"?": "question mark",
 	" ": "space"
@@ -1122,6 +1124,11 @@ function handleKeyDown(e) {
 	if (gameState !== 'PLAYING') {
 		return;
 	}
+
+	const useCodingShortcuts =
+		contentMode === 'training' ||
+		(contentMode === 'set' && speakPunctuation === true);
+
 	// Ctrl + Shift + R : reset speech (Chrome only)
 if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
 	e.preventDefault();
@@ -1129,34 +1136,75 @@ if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
 	return;
 }
 
-if (e.key === '|') {
-	e.preventDefault();
-	speakExpectedWord();
-	return;
-}
+	if (useCodingShortcuts) {
+		// Ctrl + Backquote: repeat line
+		if (e.ctrlKey && !e.shiftKey && e.code === 'Backquote') {
+			e.preventDefault();
+			speakLineOnce();
+			return;
+		}
 
-if (e.key === '?') {
-	e.preventDefault();
-	speakRemainingLine();
-	return;
-}
+		// Ctrl + Shift + Backquote: replay expected character
+		if (e.ctrlKey && e.shiftKey && e.code === 'Backquote') {
+			e.preventDefault();
+			replayExpectedChar();
+			return;
+		}
+
+		// Ctrl + Shift + Backslash: speak expected word
+		if (e.ctrlKey && e.shiftKey && e.code === 'Backslash') {
+			e.preventDefault();
+			speakExpectedWord();
+			return;
+		}
+
+		// Ctrl + Shift + Slash: speak remaining line
+		if (e.ctrlKey && e.shiftKey && e.code === 'Slash') {
+			e.preventDefault();
+			speakRemainingLine();
+			return;
+		}
+
+		// Ctrl + Backslash: exit lesson
+		if (e.ctrlKey && !e.shiftKey && e.code === 'Backslash') {
+			e.preventDefault();
+			finishGame();
+			return;
+		}
+	} else {
+		if (e.key === '|') {
+			e.preventDefault();
+			speakExpectedWord();
+			return;
+		}
+
+		if (e.key === '?') {
+			e.preventDefault();
+			speakRemainingLine();
+			return;
+		}
 
 		if (e.key === '\\') {
-		e.preventDefault();
-		queueCharacterInput('\\');
-		return;
+			e.preventDefault();
+			queueCharacterInput('\\');
+			return;
+		}
+
+		// Shift + backtick (~): replay expected character
+		if (e.key === '~') {
+			e.preventDefault();
+			replayExpectedChar();
+			return;
+		}
+
+		if (e.key === '`') {
+			e.preventDefault();
+			speakLineOnce();
+			return;
+		}
 	}
 
-// Shift + backtick (~): replay expected character
-if (e.key === '~') {
-	e.preventDefault();
-	replayExpectedChar();
-	return;
-}
-
-	if (e.key === '`') {
-		e.preventDefault();
-		speakLineOnce();
+	if (e.ctrlKey || e.metaKey || e.altKey) {
 		return;
 	}
 
