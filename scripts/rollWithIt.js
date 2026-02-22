@@ -945,7 +945,19 @@ function showCustomContentError() {
 	}
 }
 
-function startTypingLesson() {
+function getStartAnnouncementText() {
+	if (contentMode === 'custom') {
+		return 'Starting Custom Lesson';
+	}
+
+	if (activeContentTitle) {
+		return `Starting ${activeContentTitle} Lesson`;
+	}
+
+	return 'Starting Lesson';
+}
+
+async function startTypingLesson() {
 	if (!lyricsText.trim()) {
 		speak('No typing lesson content is available yet.');
 		return;
@@ -971,10 +983,15 @@ function startTypingLesson() {
 	render();
 
 	if (shouldSpeakInitialPrompt) {
+		cancelSpeechIfSpeaking();
+		resetSpeakQueue();
+		await waitForSpeechReset();
+		await speak(getStartAnnouncementText());
+
 		if (typingMode === 'guided') {
-			promptChar();
+			await promptChar();
 		} else {
-			speakLineOnce();
+			await speakLineOnce();
 		}
 	}
 }
@@ -983,7 +1000,9 @@ async function handleLineDone() {
 	const isFinalLine = currentLineIndex >= lines.length;
 
 	if (!isFinalLine) {
-		playTypewriterBell();
+		if (contentMode !== 'training') {
+			playTypewriterBell();
+		}
 	} else {
 		playFinalRickChordProgression();
 		setTimeout(() => {
@@ -1382,7 +1401,7 @@ function startBtnHandler() {
 		activatorInput.focus();
 	}
 
-	startTypingLesson();
+	void startTypingLesson();
 }
 
 function exitBtnHandler() {
