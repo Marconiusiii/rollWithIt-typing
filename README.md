@@ -4,11 +4,12 @@ Roll With It Typing is an accessible, browser-based typing practice experience d
 
 The project began as a playful typing experiment and has evolved into a fully usable typing tutor framework with multiple input modes, configurable content, and strong accessibility foundations.
 
-This repository represents the non-joke, extensible version of the project. The original joke-based implementation is preserved separately in its own branch and the working joke version can be found here: [Original Roll With It Typing](https://marconius.com/fun/rollWithIt/)
+This repository represents the non-joke, extensible version of the project. The original joke-based implementation is preserved separately in its own branch, and the working joke version can be found here: [Original Roll With It Typing](https://marconius.com/fun/rollWithIt/)
 
 ## Version
 
 Current release: 1.7.0
+
 ## Features
 
 - Multiple typing modes
@@ -40,7 +41,7 @@ Current release: 1.7.0
 
 Training Mode is designed for focused key-drill practice rather than full sentence typing.
 
-Key Training Mode features include:
+Training Mode features include:
 
 - Keyboard layout drills for both QWERTY and Dvorak
 - Row-based practice sets, including:
