@@ -1,340 +1,340 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<title>Roll with It Typing</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Roll with It Typing</title>
 
-	<meta name="description" content="A fun accessible typing tutor built by the Blind for everyone.">
-	<meta name="author" content="Chancey Fleet, Marco Salsiccia">
+<meta name="description" content="A fun accessible typing tutor built by the Blind for everyone.">
+<meta name="author" content="Chancey Fleet, Marco Salsiccia">
 
-	<link rel="stylesheet" type="text/css" href="css/rollStyle.css">
+<link rel="stylesheet" type="text/css" href="css/rollStyle.css">
 
 </head>
 <body>
-	<main id="app" class="app-container">
-		<div class="app-header">
-			<h1 id="appTitle">Roll with It Typing</h1>
+<main id="app" class="app-container">
+<div class="app-header">
+<h1 id="appTitle">Roll with It Typing</h1>
 
-			<p class="app-meta">
-				By Chancey Fleet and Marco Salsiccia.
-			</p>
-				<details class="game-settings">
-					<summary>Feb 21, 2026 Update Log</summary>
-					<ul>
-						<li>Added Windows Command Prompt coding set.</li>
-						<li>Turning Sound Effects off now includes muting the Error sound.</li>
-						<li>Under-the-good code improvements for accessibility and usability.</li>
-					</ul>
+<p class="app-meta">
+By Chancey Fleet and Marco Salsiccia.
+</p>
+<details class="game-settings">
+<summary>Feb 21, 2026 Update Log</summary>
+<ul>
+<li>Added Windows Command Prompt coding set.</li>
+<li>Turning Sound Effects off now includes muting the Error sound.</li>
+<li>Under-the-good code improvements for accessibility and usability.</li>
+</ul>
 
-			</details>
+</details>
 
-			<div class="instructions">
-				<h2>Instructions</h2>
+<div class="instructions">
+<h2>Instructions</h2>
 
-				<p class="instructions-lead">
-					Accessible edition: Uses your local system voice synthesis.
-				</p>
-				<ul class="instructions-list">
-					<li>Type the sentence you hear. You can change the speech and mode options in Typing Settings.</li>
-					<li>Mistakes trigger a beep and the prompt repeats.</li>
-					<li>Use any keyboard layout to type; QWERTY, DVORAK, Braille Keyboard Input, Braille Screen Input, external braille displays, etc.</li>
-					<li>Keyboard Shortcuts:
-						<ul>
-							<li>Backtick (`) key to repeat the current line.</li>
-							<li>Tilde (~), or Shift+Backtick will play the current character that needs to be typed.</li>
-							<li>Vertical Bar (|) or Shift+\ to speak the current word you need to type.</li>
-							<li>Question Mark (?) or Shift+/ to speak what's left of the current line that you need to type.</li>
-							<li>Backslash (\) will immediately exit the lesson.</li>
-						</ul>
-					</li>
-					<li>Check out your speed and accuracy results after finishing the lesson or exiting.</li>
-					<li>Typing Settings: Guided Mode speaks the character you have to type one by one. Sentence Mode speaks the whole sentence first before you type.</li>
-					<li>Custom Content accepts up to 40 lines of content for a typing set, otherwise enjoy a random typing set or pick one from the premade sets.</li>
-					<li><strong>Note:</strong> Keeping character verbosity on is currently unstable for Chrome for faster typers. Blame Google for this. in Chrome, there will be a Reset Speech button if the speech begins to fail. Pressing Control+Shift+R will also reset speech in Chrome.</li>
-					<li>To tease your family, friends, teachers, and enemies, the original Rick Roll With It Typing game can be found here: <a href="https://marconius.com/fun/rollWithIt/">Rick Roll With It Typing</a></li>
-				</ul>
+<p class="instructions-lead">
+Accessible edition: Uses your local system voice synthesis.
+</p>
+<ul class="instructions-list">
+<li>Type the sentence you hear. You can change the speech and mode options in Typing Settings.</li>
+<li>Mistakes trigger a beep and the prompt repeats.</li>
+<li>Use any keyboard layout to type; QWERTY, DVORAK, Braille Keyboard Input, Braille Screen Input, external braille displays, etc.</li>
+<li>Keyboard Shortcuts:
+<ul>
+<li>Backtick (`) key to repeat the current line.</li>
+<li>Tilde (~), or Shift+Backtick will play the current character that needs to be typed.</li>
+<li>Vertical Bar (|) or Shift+\ to speak the current word you need to type.</li>
+<li>Question Mark (?) or Shift+/ to speak what's left of the current line that you need to type.</li>
+<li>Backslash (\) will immediately exit the lesson.</li>
+</ul>
+</li>
+<li>Check out your speed and accuracy results after finishing the lesson or exiting.</li>
+<li>Typing Settings: Guided Mode speaks the character you have to type one by one. Sentence Mode speaks the whole sentence first before you type.</li>
+<li>Custom Content accepts up to 40 lines of content for a typing set, otherwise enjoy a random typing set or pick one from the premade sets.</li>
+<li><strong>Note:</strong> Keeping character verbosity on is currently unstable for Chrome for faster typers. Blame Google for this. in Chrome, there will be a Reset Speech button if the speech begins to fail. Pressing Control+Shift+R will also reset speech in Chrome.</li>
+<li>To tease your family, friends, teachers, and enemies, the original Rick Roll With It Typing game can be found here: <a href="https://marconius.com/fun/rollWithIt/">Rick Roll With It Typing</a></li>
+</ul>
 
-				<details class="game-settings">
-						<summary>Typing settings</summary>
-						<h2>Typing Settings</h2>
-						<fieldset>
-		<legend>Typing mode</legend>
+<details class="game-settings">
+<summary>Typing settings</summary>
+<h2>Typing Settings</h2>
+<fieldset>
+<legend>Typing mode</legend>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="typingMode"
-				id="typingModeGuided"
-				value="guided"
+<div class="setting-row">
+<input
+type="radio"
+name="typingMode"
+id="typingModeGuided"
+value="guided"
 
-			>
-			<label for="typingModeGuided">
-				Guided mode (letter by letter)
-			</label>
-		</div>
+>
+<label for="typingModeGuided">
+Guided mode (letter by letter)
+</label>
+</div>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="typingMode"
-				id="typingModeSentence"
-				value="sentence"
-				checked
-			>
-			<label for="typingModeSentence">
-				Sentence-first mode (type freely)
-			</label>
-		</div>
-	</fieldset>
+<div class="setting-row">
+<input
+type="radio"
+name="typingMode"
+id="typingModeSentence"
+value="sentence"
+checked
+>
+<label for="typingModeSentence">
+Sentence-first mode (type freely)
+</label>
+</div>
+</fieldset>
 
-	<fieldset
-		id="sentenceSpeechOptions"
-		aria-describedby="sentenceOptionsHint"
-	>
-		<legend>Sentence mode speech feedback</legend>
+<fieldset
+id="sentenceSpeechOptions"
+aria-describedby="sentenceOptionsHint"
+>
+<legend>Sentence mode speech feedback</legend>
 
-		<p id="sentenceOptionsHint">
-			These options are available when Sentence-first mode is selected.
-		</p>
+<p id="sentenceOptionsHint">
+These options are available when Sentence-first mode is selected.
+</p>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="sentenceSpeechMode"
-				id="sentenceSpeechChars"
-				value="characters"
-			>
-			<label for="sentenceSpeechChars">
-				Speak Characters
-			</label>
-		</div>
+<div class="setting-row">
+<input
+type="radio"
+name="sentenceSpeechMode"
+id="sentenceSpeechChars"
+value="characters"
+>
+<label for="sentenceSpeechChars">
+Speak Characters
+</label>
+</div>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="sentenceSpeechMode"
-				id="sentenceSpeechWords"
-				value="words"
-			>
-			<label for="sentenceSpeechWords">
-				Speak each word
-			</label>
-		</div>
+<div class="setting-row">
+<input
+type="radio"
+name="sentenceSpeechMode"
+id="sentenceSpeechWords"
+value="words"
+>
+<label for="sentenceSpeechWords">
+Speak each word
+</label>
+</div>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="sentenceSpeechMode"
-				id="sentenceSpeechBoth"
-				value="both"
-			>
-			<label for="sentenceSpeechBoth">
-				Speak characters and words
-			</label>
-		</div>
+<div class="setting-row">
+<input
+type="radio"
+name="sentenceSpeechMode"
+id="sentenceSpeechBoth"
+value="both"
+>
+<label for="sentenceSpeechBoth">
+Speak characters and words
+</label>
+</div>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="sentenceSpeechMode"
-				id="sentenceSpeechErrors"
-				value="errors"
-				checked
-			>
-			<label for="sentenceSpeechErrors">
-				Speak errors only
-			</label>
-		</div>
-	</fieldset>
+<div class="setting-row">
+<input
+type="radio"
+name="sentenceSpeechMode"
+id="sentenceSpeechErrors"
+value="errors"
+checked
+>
+<label for="sentenceSpeechErrors">
+Speak errors only
+</label>
+</div>
+</fieldset>
 
 <fieldset>
-	<legend>Additional Settings</legend>
+<legend>Additional Settings</legend>
 
-	<div class="setting-row">
-		<input
-			type="checkbox"
-			name="punctuation"
-			id="punctToggle"
-		>
-		<label for="punctToggle">
-			Speak All Punctuation
-		</label>
-	</div>
+<div class="setting-row">
+<input
+type="checkbox"
+name="punctuation"
+id="punctToggle"
+>
+<label for="punctToggle">
+Speak All Punctuation
+</label>
+</div>
 
-	<div class="setting-row">
-		<input
-			type="checkbox"
-			id="soundEffectsToggle"
-			checked
-		>
-		<label for="soundEffectsToggle">
-			Play sound effects
-		</label>
-	</div>
+<div class="setting-row">
+<input
+type="checkbox"
+id="soundEffectsToggle"
+checked
+>
+<label for="soundEffectsToggle">
+Play sound effects
+</label>
+</div>
 
 </fieldset>
 <fieldset>
-	<legend>Speech Settings</legend>
+<legend>Speech Settings</legend>
 
-	<div class="setting-row">
-		<label for="voiceSelect">
-			Voice
-		</label>
+<div class="setting-row">
+<label for="voiceSelect">
+Voice
+</label>
 
-		<select id="voiceSelect">
-			<option value="">
-				System default
-			</option>
-		</select>
-	</div>
+<select id="voiceSelect">
+<option value="">
+System default
+</option>
+</select>
+</div>
 
-	<div class="setting-row">
-		<label for="voiceRateNumber">
-			Speech Rate
-		</label>
+<div class="setting-row">
+<label for="voiceRateNumber">
+Speech Rate
+</label>
 
-		<input
-			type="number"
-			id="voiceRateNumber"
-			min="0"
-			max="100"
-			step="1"
-			value="30"
-		>
+<input
+type="number"
+id="voiceRateNumber"
+min="0"
+max="100"
+step="1"
+value="30"
+>
 
 
-		<button
-			type="button"
-			id="playVoiceSample"
-		>
-			Play Voice
-		</button>
-	</div>
+<button
+type="button"
+id="playVoiceSample"
+>
+Play Voice
+</button>
+</div>
 
 </fieldset>
 </details>
 
-					<details class="content-settings">
-						<summary>Content settings</summary>
-						<h2>Content Settings</h2>
+<details class="content-settings">
+<summary>Content settings</summary>
+<h2>Content Settings</h2>
 
-	<fieldset>
-		<legend>Typing content</legend>
+<fieldset>
+<legend>Typing content</legend>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="contentMode"
-				id="contentModeOriginal"
-				value="original"
-				checked
-			>
-			<label for="contentModeOriginal">
-				Use random typing content
-			</label>
-		</div>
+<div class="setting-row">
+<input
+type="radio"
+name="contentMode"
+id="contentModeOriginal"
+value="original"
+checked
+>
+<label for="contentModeOriginal">
+Use random typing content
+</label>
+</div>
 
-			<div class="setting-row">
-				<input
-					type="radio"
-					name="contentMode"
-					id="contentModeSet"
-					value="set"
-				>
-				<label for="contentModeSet">
-					Choose a typing set
-				</label>
-			</div>
+<div class="setting-row">
+<input
+type="radio"
+name="contentMode"
+id="contentModeSet"
+value="set"
+>
+<label for="contentModeSet">
+Choose a typing set
+</label>
+</div>
 
-			<div class="setting-row">
-				<input
-					type="radio"
-					name="contentMode"
-					id="contentModeTraining"
-					value="training"
-				>
-				<label for="contentModeTraining">
-					Typing training
-				</label>
-			</div>
+<div class="setting-row">
+<input
+type="radio"
+name="contentMode"
+id="contentModeTraining"
+value="training"
+>
+<label for="contentModeTraining">
+Typing training
+</label>
+</div>
 
-		<div class="setting-row">
-			<input
-				type="radio"
-				name="contentMode"
-				id="contentModeCustom"
-				value="custom"
-			>
-			<label for="contentModeCustom">
-				Use custom typing content
-			</label>
-		</div>
-	</fieldset>
+<div class="setting-row">
+<input
+type="radio"
+name="contentMode"
+id="contentModeCustom"
+value="custom"
+>
+<label for="contentModeCustom">
+Use custom typing content
+</label>
+</div>
+</fieldset>
 
-					<fieldset
-						id="contentSetFieldset"
-						disabled
-					>
-						<legend>Choose a typing set</legend>
+<fieldset
+id="contentSetFieldset"
+disabled
+>
+<legend>Choose a typing set</legend>
 
-						<label for="contentSetSelect">
-							Available sets
-						</label>
+<label for="contentSetSelect">
+Available sets
+</label>
 
-						<select id="contentSetSelect">
-						</select>
-					</fieldset>
+<select id="contentSetSelect">
+</select>
+</fieldset>
 
-					<fieldset
-						id="typingTrainingFieldset"
-						disabled
-					>
-						<legend>Typing training sets</legend>
+<fieldset
+id="typingTrainingFieldset"
+disabled
+>
+<legend>Typing training sets</legend>
 
-						<label for="typingTrainingSelect">
-							Keyboard training sets
-						</label>
+<label for="typingTrainingSelect">
+Keyboard training sets
+</label>
 
-						<select id="typingTrainingSelect">
-						</select>
-					</fieldset>
+<select id="typingTrainingSelect">
+</select>
+</fieldset>
 
-	<fieldset
-		id="customContentFieldset"
-		aria-describedby="customContentHint"
-		disabled
-	>
-		<legend>Custom typing content</legend>
+<fieldset
+id="customContentFieldset"
+aria-describedby="customContentHint"
+disabled
+>
+<legend>Custom typing content</legend>
 
-		<p id="customContentHint">
-			Paste or type text below. Up to 40 lines will be used.
-		</p>
+<p id="customContentHint">
+Paste or type text below. Up to 40 lines will be used.
+</p>
 
-		<label for="customContentInput">
-			Custom content
-		</label>
+<label for="customContentInput">
+Custom content
+</label>
 
-		<textarea
-			id="customContentInput"
-			rows="6"
-			maxlength="8000"
-			placeholder="Paste text here…"
-		></textarea>
-			<p
-				id="customContentError"
-				class="error-message hidden"
-				role="alert"
-			>
-				Please enter some text before starting the lesson.
-			</p>
+<textarea
+id="customContentInput"
+rows="6"
+maxlength="8000"
+placeholder="Paste text here…"
+></textarea>
+<p
+id="customContentError"
+class="error-message hidden"
+role="alert"
+>
+Please enter some text before starting the lesson.
+</p>
 
-		</fieldset>
-					</details>
+</fieldset>
+</details>
 
-					<details class="game-settings">
-						<summary>Keyboard Layout Reference</summary>
-						<h2>Keyboard Layout Reference</h2>
+<details class="game-settings">
+<summary>Keyboard Layout Reference</summary>
+<h2>Keyboard Layout Reference</h2>
 
 <p>These reference tables show the number row, first row,home row, and the third row of keys for standard QWERTY and Dvorak layouts. Set your screen reader punctuation verbosity to All to hear all of the punctuation for Shifted keys.</p>
 
@@ -417,208 +417,208 @@
 <h3>Dvorak Reference</h3>
 
 <table>
-	<caption>Dvorak Layout</caption>
+<caption>Dvorak Layout</caption>
 
-	<tr>
-		<th scope="row">Number Row</th>
-		<td>` and ~</td>
-		<td>1 and !</td>
-		<td>2 and @</td>
-		<td>3 and #</td>
-		<td>4 and $</td>
-		<td>5 and %</td>
-		<td>6 and ^</td>
-		<td>7 and &amp;</td>
-		<td>8 and *</td>
-		<td>9 and (</td>
-		<td>0 and )</td>
-		<td>[ and {</td>
-		<td>] and }</td>
-		<td>Delete Key</td>
-	</tr>
+<tr>
+<th scope="row">Number Row</th>
+<td>` and ~</td>
+<td>1 and !</td>
+<td>2 and @</td>
+<td>3 and #</td>
+<td>4 and $</td>
+<td>5 and %</td>
+<td>6 and ^</td>
+<td>7 and &amp;</td>
+<td>8 and *</td>
+<td>9 and (</td>
+<td>0 and )</td>
+<td>[ and {</td>
+<td>] and }</td>
+<td>Delete Key</td>
+</tr>
 
-	<tr>
-		<th scope="row">First Row</th>
-		<td>Tab Key</td>
-		<td>' and "</td>
-		<td>, and &lt;</td>
-		<td>. and &gt;</td>
-		<td>p</td>
-		<td>y</td>
-		<td>f</td>
-		<td>g</td>
-		<td>c</td>
-		<td>r</td>
-		<td>l</td>
-		<td>/ and ?</td>
-		<td>= and +</td>
-		<td>\ and |</td>
-	</tr>
+<tr>
+<th scope="row">First Row</th>
+<td>Tab Key</td>
+<td>' and "</td>
+<td>, and &lt;</td>
+<td>. and &gt;</td>
+<td>p</td>
+<td>y</td>
+<td>f</td>
+<td>g</td>
+<td>c</td>
+<td>r</td>
+<td>l</td>
+<td>/ and ?</td>
+<td>= and +</td>
+<td>\ and |</td>
+</tr>
 
-	<tr>
-		<th scope="row">Home Row</th>
-		<td>Caps Lock</td>
-		<td>a</td>
-		<td>o</td>
-		<td>e</td>
-		<td aria-description="Home Key"><strong>u</strong></td>
-		<td>i</td>
-		<td>d</td>
-		<td aria-description="Home Key"><strong>h</strong></td>
-		<td>t</td>
-		<td>n</td>
-		<td>s</td>
-		<td>- and _</td>
-		<td colspan="2">Return Key</td>
-	</tr>
+<tr>
+<th scope="row">Home Row</th>
+<td>Caps Lock</td>
+<td>a</td>
+<td>o</td>
+<td>e</td>
+<td aria-description="Home Key"><strong>u</strong></td>
+<td>i</td>
+<td>d</td>
+<td aria-description="Home Key"><strong>h</strong></td>
+<td>t</td>
+<td>n</td>
+<td>s</td>
+<td>- and _</td>
+<td colspan="2">Return Key</td>
+</tr>
 
-	<tr>
-		<th scope="row">Third Row</th>
-		<td colspan="2">Shift Key</td>
-		<td>; and :</td>
-		<td>q</td>
-		<td>j</td>
-		<td>k</td>
-		<td>x</td>
-		<td>b</td>
-		<td>m</td>
-		<td>w</td>
-		<td>v</td>
-		<td>z</td>
-		<td colspan="2">Shift Key</td>
-	</tr>
+<tr>
+<th scope="row">Third Row</th>
+<td colspan="2">Shift Key</td>
+<td>; and :</td>
+<td>q</td>
+<td>j</td>
+<td>k</td>
+<td>x</td>
+<td>b</td>
+<td>m</td>
+<td>w</td>
+<td>v</td>
+<td>z</td>
+<td colspan="2">Shift Key</td>
+</tr>
 </table>
 
 </details>
 
 </details>
 
-				<button
-					id="startLessonButton"
-					type="button"
-					class="start-button"
-				>
-					Start Typing Lesson
-				</button>
-			</div>
-		</div>
+<button
+id="startLessonButton"
+type="button"
+class="start-button"
+>
+Start Typing Lesson
+</button>
+</div>
+</div>
 
-		<section id="game-screen" class="game-screen hidden" inert>
-			<div
-				id="lyrics-display"
-				class="typing-display"
-			></div>
+<section id="game-screen" class="game-screen hidden" inert>
+<div
+id="lyrics-display"
+class="typing-display"
+></div>
 
-			<!--
-				Keyboard activator input
-				Used only to summon the on-screen keyboard for sighted users on iOS.
-				Not used for gameplay input.
-			-->
-			<label for="keyboard-activator" class="typing-input-label">
-				Just Start Typing!
-			</label>
+<!--
+Keyboard activator input
+Used only to summon the on-screen keyboard for sighted users on iOS.
+Not used for gameplay input.
+-->
+<label for="keyboard-activator" class="typing-input-label">
+Just Start Typing!
+</label>
 
-			<input
-				type="text"
-				id="keyboard-activator"
-				class="typing-input"
-				autocomplete="off"
-				autocorrect="off"
-				autocapitalize="off"
-				spellcheck="false"
-			>
+<input
+type="text"
+id="keyboard-activator"
+class="typing-input"
+autocomplete="off"
+autocorrect="off"
+autocapitalize="off"
+spellcheck="false"
+>
 
-			<!--
-				Keyboard capture surface
-				Receives key events for gameplay.
-				Non-editable, no value mutation.
-			-->
-			<div
-				id="keyboard-capture"
-				tabindex="0"
-			></div>
+<!--
+Keyboard capture surface
+Receives key events for gameplay.
+Non-editable, no value mutation.
+-->
+<div
+id="keyboard-capture"
+tabindex="0"
+></div>
 
-				<div id="status-bar" class="status-bar">
-					<span id="char-indicator">Awaiting input...</span>
-					<p id="progressStatus"></p>
-					<span>Press \ to end lesson</span>
-				</div>
-				<button
-					type="button"
-					id="resetSpeechButton"
-				>
-					Reset Speech for Chrome
-				</button>
+<div id="status-bar" class="status-bar">
+<span id="char-indicator">Awaiting input...</span>
+<p id="progressStatus"></p>
+<span>Press \ to end lesson</span>
+</div>
+<button
+type="button"
+id="resetSpeechButton"
+>
+Reset Speech for Chrome
+</button>
 
-			<button
-				type="button"
-				id="exitLessonButton"
-				class="exit-button"
-			>
-				End Lesson
-			</button>
-		</section>
+<button
+type="button"
+id="exitLessonButton"
+class="exit-button"
+>
+End Lesson
+</button>
+</section>
 
-		<section id="results-screen" class="results-screen hidden" inert>
-			<h2 tabindex="-1" id="resultsHeading">Results</h2>
+<section id="results-screen" class="results-screen hidden" inert>
+<h2 tabindex="-1" id="resultsHeading">Results</h2>
 
-			<div class="results-metrics">
-				<div class="metric" role="text">
-					<p class="metric-label" id="wpmLabel">WPM: </p>
-					<p id="wpm-val" class="metric-value">0</p>
-				</div>
+<div class="results-metrics">
+<div class="metric" role="text">
+<p class="metric-label" id="wpmLabel">WPM: </p>
+<p id="wpm-val" class="metric-value">0</p>
+</div>
 
-				<div class="metric" role="text">
-					<p class="metric-label" id="accuracyLabel">Accuracy: </p>
-					<p id="accuracy-val" class="metric-value">0%</p>
-				</div>
+<div class="metric" role="text">
+<p class="metric-label" id="accuracyLabel">Accuracy: </p>
+<p id="accuracy-val" class="metric-value">0%</p>
+</div>
 
-				<div class="metric" role="text">
-					<p class="metric-label" id="errLabel">Keys that deserted you: </p>
-					<p id="err-val" class="metric-value">0</p>
-				</div>
+<div class="metric" role="text">
+<p class="metric-label" id="errLabel">Keys that deserted you: </p>
+<p id="err-val" class="metric-value">0</p>
+</div>
 
-				<div class="metric" role="text">
-					<p class="metric-label" id="desertLabel">Practice these Keys so they don't desert you again: </p>
-					<p id="desert-val" class="metric-value"></p>
-				</div>
+<div class="metric" role="text">
+<p class="metric-label" id="desertLabel">Practice these Keys so they don't desert you again: </p>
+<p id="desert-val" class="metric-value"></p>
+</div>
 
-			</div>
+</div>
 
-			<div role="alert">
-				<p id="wpmNote" class="results-note hidden"></p>
-			</div>
+<div role="alert">
+<p id="wpmNote" class="results-note hidden"></p>
+</div>
 
-			<button
-				type="button"
-				class="restart-button"
-				id="closeResultsButton"
-			>
-				Close Results
-			</button>
-		</section>
-	</main>
+<button
+type="button"
+class="restart-button"
+id="closeResultsButton"
+>
+Close Results
+</button>
+</section>
+</main>
 
-	<footer id="footer" class="footer-panel">
-		<nav aria-label="Footer">
-				<ul class="footer-links">
-					<li><a href="https://marconius.com/">marconius.com</a></li>
-					<li><a href="https://marconius.com/fun/audioInvaders/">Audio Invaders</a></li>
-					<li><a href="https://marconius.com/fun/audioArcher/" id="audioArcher">Arcane Audio Archer</a></li>
-					<li><a href="https://marconius.com/fun/whackABraille/">Whack A Braille!</a></li>
-					<li><a href="https://github.com/Marconiusiii/rollWithIt-typing">Roll With It Typing on Github</a></li>
-					<li><a href="mailto:marco@marconius.com?subject=Roll%20With%20It%20Typing%20Feedback">Send Feedback on Roll With It Typing</a></li>
-				</ul>
-		</nav>
+<footer id="footer" class="footer-panel">
+<nav aria-label="Footer">
+<ul class="footer-links">
+<li><a href="https://marconius.com/">marconius.com</a></li>
+<li><a href="https://marconius.com/fun/audioInvaders/">Audio Invaders</a></li>
+<li><a href="https://marconius.com/fun/audioArcher/" id="audioArcher">Arcane Audio Archer</a></li>
+<li><a href="https://marconius.com/fun/whackABraille/">Whack A Braille!</a></li>
+<li><a href="https://github.com/Marconiusiii/rollWithIt-typing">Roll With It Typing on Github</a></li>
+<li><a href="mailto:marco@marconius.com?subject=Roll%20With%20It%20Typing%20Feedback">Send Feedback on Roll With It Typing</a></li>
+</ul>
+</nav>
 
-		<p class="footer-copy small muted">
-			&copy;<span id="copyrightYear"></span>
-			Chancey Fleet and Marco Salsiccia, v.1.7.0
-		</p>
-	</footer>
+<p class="footer-copy small muted">
+&copy;<span id="copyrightYear"></span>
+Chancey Fleet and Marco Salsiccia, v.1.7.0
+</p>
+</footer>
 
-	<script src="scripts/typingTrainingSets.js"></script>
-	<script src="scripts/typingSets.js"></script>
-	<script src="scripts/rollWithIt.js"></script>
+<script src="scripts/typingTrainingSets.js"></script>
+<script src="scripts/typingSets.js"></script>
+<script src="scripts/rollWithIt.js"></script>
 </body>
 </html>
