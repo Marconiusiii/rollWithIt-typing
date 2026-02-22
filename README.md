@@ -35,6 +35,28 @@ Current release: 1.7.0
 	- Error key reporting
 - Keyboard-first interaction
 - Screen reader–friendly semantics
+
+## Training Mode
+
+Training Mode is designed for focused key-drill practice rather than full sentence typing.
+
+Key Training Mode features include:
+
+- Keyboard layout drills for both QWERTY and Dvorak
+- Row-based practice sets, including:
+	- Number row
+	- Top letter row
+	- Home row
+	- Bottom letter row
+	- Punctuation (QWERTY)
+- Randomized drills for:
+	- Letters
+	- Letters and numbers
+	- Letters, numbers, and punctuation
+- One character per line lesson flow, so users practice discrete key targets without typing separator spaces
+- Integrated support with the Keyboard Layout Reference section in the app for side-by-side study
+- Training-specific results behavior where WPM is not calculated, while accuracy and error tracking are still reported
+
 ## Accessibility
 
 Accessibility is a core design goal, not an afterthought.
