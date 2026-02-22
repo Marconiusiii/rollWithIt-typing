@@ -487,6 +487,33 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'windows-command-prompt-fundamentals',
+		title: 'Windows Command Prompt Fundamentals',
+		type: 'code',
+		lines: [
+			`@echo off`,
+			`title A Batch of Code`,
+			`echo Hello, World!`,
+			`timeout 6`,
+			`rem This is a comment.`,
+			`:beginning`,
+			`set /p name=Enter your name`,
+			`echo Hello, %name%!`,
+			`set /a mathtest=5+5`,
+			`echo 5+5=%mathtest%!`,
+			`pause`,
+			`choice /c:yn /n /m "Want to start over?"`,
+			`if %errorlevel%==1 goto beginning`,
+			`if %errorlevel%==2 echo Okay, continue!`,
+			`echo Your random number is %random%`,
+			`echo I don't remember copying this|clip`,
+			`echo I created a file>randomtext.txt`,
+			`type randomtext.txt`,
+			`pause>nul`,
+			`del randomtext.txt`
+		]
+	},
+	{
 		id: 'svg-basics',
 		title: 'SVG Basics',
 		type: 'code',

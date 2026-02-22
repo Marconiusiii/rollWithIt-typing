@@ -1015,6 +1015,10 @@ async function handleCharacterInput(char) {
 
 	totalKeystrokes++;
 
+	if (typingStartTime === null) {
+		typingStartTime = Date.now();
+	}
+
 if (!matches) {
 	errors++;
 	errorKeys.add(expected);
@@ -1032,10 +1036,6 @@ if (!matches) {
 
 	return;
 }
-
-	if (typingStartTime === null) {
-		typingStartTime = Date.now();
-	}
 
 	currentCharIndex++;
 	lastErrorCharIndexSpoken = null;
@@ -1141,6 +1141,11 @@ if (e.key === '~') {
 }
 
 function finishGame() {
+	if (typingStartTime !== null) {
+		totalTypingTime += Date.now() - typingStartTime;
+		typingStartTime = null;
+	}
+
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
 
