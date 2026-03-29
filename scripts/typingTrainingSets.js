@@ -155,3 +155,5 @@ const typingTrainingSets = {
 		}
 	}
 };
+
+globalThis.typingTrainingSets = typingTrainingSets;

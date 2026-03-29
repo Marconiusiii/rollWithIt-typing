@@ -613,3 +613,5 @@ const typingContentSets = [
 		]
 	}
 ];
+
+globalThis.typingContentSets = typingContentSets;
