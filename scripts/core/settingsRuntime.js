@@ -82,8 +82,10 @@ export function applyPersistedSettingsToUI({
 	sentenceSpeechWords,
 	sentenceSpeechBoth,
 	sentenceSpeechMode,
-	punctToggle,
-	speakAllPunctuation,
+	punctuationModeNone,
+	punctuationModeSome,
+	punctuationModeAll,
+	punctuationMode,
 	contentModeOriginal,
 	contentModeSet,
 	contentModeTraining,
@@ -123,8 +125,14 @@ export function applyPersistedSettingsToUI({
 		sentenceSpeechBoth.checked = sentenceSpeechMode === 'both';
 	}
 
-	if (punctToggle) {
-		punctToggle.checked = speakAllPunctuation;
+	if (punctuationModeNone) {
+		punctuationModeNone.checked = punctuationMode === 'none';
+	}
+	if (punctuationModeSome) {
+		punctuationModeSome.checked = punctuationMode === 'some';
+	}
+	if (punctuationModeAll) {
+		punctuationModeAll.checked = punctuationMode === 'all';
 	}
 
 	if (contentModeOriginal) {

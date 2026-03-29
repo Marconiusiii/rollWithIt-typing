@@ -5,7 +5,7 @@ export const APP_SETTINGS_DEFAULTS = {
 	selectedVoiceName: '',
 	selectedVoiceRatePercent: 30,
 	selectedVoiceVolumePercent: 100,
-	speakAllPunctuation: false,
+	punctuationMode: 'none',
 	soundEffectsEnabled: true,
 	selectedContentSetId: '',
 	selectedTrainingRowId: ''
@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
 	selectedVoiceName: 'preferredVoice',
 	selectedVoiceRatePercent: 'preferredVoiceRatePercent',
 	selectedVoiceVolumePercent: 'preferredVoiceVolumePercent',
+	punctuationMode: 'punctuationMode',
 	speakAllPunctuation: 'speakAllPunctuation',
 	soundEffectsEnabled: 'soundEffectsEnabled',
 	selectedContentSetId: 'selectedContentSetId',
@@ -49,9 +50,32 @@ function parseBoolean(value, fallback) {
 	return fallback;
 }
 
+function parsePunctuationMode(value, fallback) {
+	if (value === 'none' || value === 'some' || value === 'all') {
+		return value;
+	}
+
+	return fallback;
+}
+
 export function loadAppSettings(storage) {
 	if (!storage) {
 		return { ...APP_SETTINGS_DEFAULTS };
+	}
+
+	const storedPunctuationMode = storage.getItem(STORAGE_KEYS.punctuationMode);
+	const legacySpeakAllPunctuation = parseBoolean(
+		storage.getItem(STORAGE_KEYS.speakAllPunctuation),
+		null
+	);
+
+	let punctuationMode = parsePunctuationMode(
+		storedPunctuationMode,
+		APP_SETTINGS_DEFAULTS.punctuationMode
+	);
+
+	if (!storedPunctuationMode && legacySpeakAllPunctuation !== null) {
+		punctuationMode = legacySpeakAllPunctuation ? 'all' : 'none';
 	}
 
 	return {
@@ -61,7 +85,7 @@ export function loadAppSettings(storage) {
 		selectedVoiceName: storage.getItem(STORAGE_KEYS.selectedVoiceName) || APP_SETTINGS_DEFAULTS.selectedVoiceName,
 		selectedVoiceRatePercent: parsePercent(storage.getItem(STORAGE_KEYS.selectedVoiceRatePercent), APP_SETTINGS_DEFAULTS.selectedVoiceRatePercent),
 		selectedVoiceVolumePercent: parsePercent(storage.getItem(STORAGE_KEYS.selectedVoiceVolumePercent), APP_SETTINGS_DEFAULTS.selectedVoiceVolumePercent),
-		speakAllPunctuation: parseBoolean(storage.getItem(STORAGE_KEYS.speakAllPunctuation), APP_SETTINGS_DEFAULTS.speakAllPunctuation),
+		punctuationMode,
 		soundEffectsEnabled: parseBoolean(storage.getItem(STORAGE_KEYS.soundEffectsEnabled), APP_SETTINGS_DEFAULTS.soundEffectsEnabled),
 		selectedContentSetId: storage.getItem(STORAGE_KEYS.selectedContentSetId) || APP_SETTINGS_DEFAULTS.selectedContentSetId,
 		selectedTrainingRowId: storage.getItem(STORAGE_KEYS.selectedTrainingRowId) || APP_SETTINGS_DEFAULTS.selectedTrainingRowId

@@ -9,6 +9,7 @@ import * as SpeechRuntime from './core/speechRuntime.js';
 import * as SpeechHelpersRuntime from './core/speechHelpersRuntime.js';
 import * as SfxRuntime from './core/sfxRuntime.js';
 import * as ModeRuntime from './core/modeRuntime.js';
+import * as GameplayRuntime from './core/gameplayRuntime.js';
 import * as ContentRuntime from './core/contentRuntime.js';
 import * as CustomContentRuntime from './core/customContentRuntime.js';
 import * as LessonRuntime from './core/lessonRuntime.js';
@@ -46,7 +47,8 @@ let selectedVoiceName = persistedSettings.selectedVoiceName || null;
 let selectedVoiceRatePercent = persistedSettings.selectedVoiceRatePercent;
 let selectedVoiceVolumePercent = persistedSettings.selectedVoiceVolumePercent;
 let activeContentTitle = '';
-let speakPunctuation = false;
+let lessonUsesCodingShortcuts = false;
+let punctuationMode = persistedSettings.punctuationMode;
 let shouldSpeakInitialPrompt = true;
 let charSpeechBuffer = '';
 let charSpeechFramePending = false;
@@ -71,7 +73,6 @@ function chromeSpeechIsBusy() {
 	return window.speechSynthesis.speaking || window.speechSynthesis.pending;
 }
 
-let speakAllPunctuation = persistedSettings.speakAllPunctuation;
 let soundEffectsEnabled = persistedSettings.soundEffectsEnabled;
 let lastErrorCharIndexSpoken = null;
 
@@ -223,7 +224,22 @@ function waitForSpeechReset() {
 	return new Promise(resolve => setTimeout(resolve, 50));
 }
 
-function expandPunctuationForSpeech(text) {
+function expandSomePunctuationForSpeech(text) {
+	return text
+		.replace(/’/g, ' apostrophe ')
+		.replace(/'/g, ' apostrophe ')
+		.replace(/,/g, ' comma ')
+		.replace(/\./g, ' period ')
+		.replace(/\?/g, ' question mark ')
+		.replace(/!/g, ' exclamation mark ')
+		.replace(/:/g, ' colon ')
+		.replace(/;/g, ' semicolon ')
+		.replace(/\//g, ' slash ')
+		.replace(/\\/g, ' backslash ')
+		.replace(/-/g, ' hyphen ');
+}
+
+function expandAllPunctuationForSpeech(text) {
 	return text
 		.replace(/“|”/g, ' quote ')
 		.replace(/"/g, ' quote ')
@@ -344,9 +360,9 @@ function speak(text) {
 		setIsSpeaking: (value) => {
 			isSpeaking = value;
 		},
-		speakAllPunctuation,
-		speakPunctuation,
-		expandPunctuationForSpeech,
+		punctuationMode,
+		expandSomePunctuationForSpeech,
+		expandAllPunctuationForSpeech,
 		getSpeechRateFromPercent,
 		getSpeechVolumeFromPercent,
 		selectedVoiceRatePercent,
@@ -508,9 +524,10 @@ async function promptChar() {
 		resetSpeakQueue,
 		getSpokenChar,
 		speak,
-		speakAllPunctuation,
-		speakPunctuation,
-		expandPunctuationForSpeech
+		punctuationMode,
+		applyPunctuationMode: SpeechRuntime.applyPunctuationMode,
+		expandSomePunctuationForSpeech,
+		expandAllPunctuationForSpeech
 	});
 }
 
@@ -602,197 +619,76 @@ async function handleLineDone() {
 }
 
 async function handleCharacterInput(char) {
-	if (gameState !== 'PLAYING') {
-		return;
-	}
-
-	if (char === '\\') {
-		finishGame();
-		return;
-	}
-
-	const line = lines[currentLineIndex];
-	const expected = line?.[currentCharIndex];
-
-	if (expected === undefined) {
-		return;
-	}
-
-	const matches =
-		(char.toLowerCase() === expected.toLowerCase()) ||
-		(expected === ' ' && char === ' ');
-
-	totalKeystrokes++;
-
-	if (typingStartTime === null) {
-		typingStartTime = Date.now();
-	}
-
-if (!matches) {
-	errors++;
-	errorKeys.add(expected);
-	playBeep();
-
-	if (lastErrorCharIndexSpoken !== currentCharIndex) {
-		lastErrorCharIndexSpoken = currentCharIndex;
-
-		if (typingMode === 'guided') {
-			promptChar();
-		} else if (typingMode === 'word') {
-			speakCharCutover(`${getSpokenChar(expected)} `);
-		} else {
-			speakCharCutover(`${getSpokenChar(expected)} `);
-		}
-	}
-
-	return;
-}
-
-	currentCharIndex++;
-	lastErrorCharIndexSpoken = null;
-
-	if (typingMode === 'sentence') {
-		if (sentenceSpeechMode === 'characters' || sentenceSpeechMode === 'both') {
-			speakCharCutover(`${getSpokenChar(char)} `);
-		}
-
-		if (sentenceSpeechMode === 'words' || sentenceSpeechMode === 'both') {
-			if (isWordEnd(line, currentCharIndex)) {
-				const lastWord = getLastWord(line, currentCharIndex);
-				if (lastWord) {
-					queueSpeak(lastWord);
-				}
-			}
-		}
-	}
-
-	if (currentCharIndex >= line.length) {
-		totalTypingTime = Metrics.accumulateElapsedTime(totalTypingTime, typingStartTime);
-		typingStartTime = null;
-
-		currentLineIndex++;
-		updateProgressStatus();
-		currentCharIndex = 0;
-
-		await handleLineDone();
-		return;
-	}
-
-	render();
-
-	if (typingMode === 'guided') {
-		promptChar();
-	} else if (typingMode === 'word') {
-		promptWord();
-	}
+	await GameplayRuntime.handleCharacterInput({
+		char,
+		gameState,
+		finishGame,
+		lines,
+		currentLineIndex,
+		currentCharIndex,
+		setTotalKeystrokes: (value) => {
+			totalKeystrokes = value;
+		},
+		totalKeystrokes,
+		setTypingStartTime: (value) => {
+			typingStartTime = value;
+		},
+		typingStartTime,
+		setErrors: (value) => {
+			errors = value;
+		},
+		errors,
+		errorKeys,
+		playBeep,
+		lastErrorCharIndexSpoken,
+		setLastErrorCharIndexSpoken: (value) => {
+			lastErrorCharIndexSpoken = value;
+		},
+		typingMode,
+		promptChar,
+		speakCharCutover,
+		getSpokenChar,
+		sentenceSpeechMode,
+		isWordEnd,
+		getLastWord,
+		queueSpeak,
+		accumulateElapsedTime: Metrics.accumulateElapsedTime,
+		totalTypingTime,
+		setTotalTypingTime: (value) => {
+			totalTypingTime = value;
+		},
+		updateProgressStatus,
+		setCurrentLineIndex: (value) => {
+			currentLineIndex = value;
+		},
+		setCurrentCharIndex: (value) => {
+			currentCharIndex = value;
+		},
+		handleLineDone,
+		render,
+		promptWord
+	});
 }
 
 function handleBeforeInput(e) {
-	if (gameState !== 'PLAYING') {
-		return;
-	}
-
-	if (typeof e.data === 'string' && e.data.length > 0) {
-		e.preventDefault();
-
-		for (const ch of e.data) {
-			queueCharacterInput(ch);
-		}
-	}
+	GameplayRuntime.handleBeforeInput({ e, gameState, queueCharacterInput });
 }
 
 function handleKeyDown(e) {
-	if (gameState !== 'PLAYING') {
-		return;
-	}
-
-	const useCodingShortcuts =
-		contentMode === 'training' ||
-		(contentMode === 'set' && speakPunctuation === true);
-
-	// Ctrl + Shift + R : reset speech (Chrome only)
-if (isChrome && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
-	e.preventDefault();
-	hardResetSpeechSynthesis();
-	return;
-}
-
-	if (useCodingShortcuts) {
-		// Ctrl + Backquote: repeat line
-		if (e.ctrlKey && !e.shiftKey && e.code === 'Backquote') {
-			e.preventDefault();
-			speakLineOnce();
-			return;
-		}
-
-		// Ctrl + Shift + Backquote: replay expected character
-		if (e.ctrlKey && e.shiftKey && e.code === 'Backquote') {
-			e.preventDefault();
-			replayExpectedChar();
-			return;
-		}
-
-		// Ctrl + Shift + Backslash: speak expected word
-		if (e.ctrlKey && e.shiftKey && e.code === 'Backslash') {
-			e.preventDefault();
-			speakExpectedWord();
-			return;
-		}
-
-		// Ctrl + Shift + Slash: speak remaining line
-		if (e.ctrlKey && e.shiftKey && e.code === 'Slash') {
-			e.preventDefault();
-			speakRemainingLine();
-			return;
-		}
-
-		// Ctrl + Backslash: exit lesson
-		if (e.ctrlKey && !e.shiftKey && e.code === 'Backslash') {
-			e.preventDefault();
-			finishGame();
-			return;
-		}
-	} else {
-		if (e.key === '|') {
-			e.preventDefault();
-			speakExpectedWord();
-			return;
-		}
-
-		if (e.key === '?') {
-			e.preventDefault();
-			speakRemainingLine();
-			return;
-		}
-
-		if (e.key === '\\') {
-			e.preventDefault();
-			queueCharacterInput('\\');
-			return;
-		}
-
-		// Shift + backtick (~): replay expected character
-		if (e.key === '~') {
-			e.preventDefault();
-			replayExpectedChar();
-			return;
-		}
-
-		if (e.key === '`') {
-			e.preventDefault();
-			speakLineOnce();
-			return;
-		}
-	}
-
-	if (e.ctrlKey || e.metaKey || e.altKey) {
-		return;
-	}
-
-	if (e.key.length === 1) {
-		e.preventDefault();
-		queueCharacterInput(e.key);
-	}
+	GameplayRuntime.handleKeyDown({
+		e,
+		gameState,
+		contentMode,
+		lessonUsesCodingShortcuts,
+		isChrome,
+		hardResetSpeechSynthesis,
+		speakLineOnce,
+		replayExpectedChar,
+		speakExpectedWord,
+		speakRemainingLine,
+		finishGame,
+		queueCharacterInput
+	});
 }
 
 function finishGame() {
@@ -860,7 +756,7 @@ function startBtnHandler() {
 
 	lyricsText = lessonPayload.lyricsText;
 	activeContentTitle = lessonPayload.activeContentTitle;
-	speakPunctuation = lessonPayload.speakPunctuation;
+	lessonUsesCodingShortcuts = lessonPayload.usesCodingShortcuts;
 
 	gameState = 'PLAYING';
 	setScreenState({ document, targetState: 'PLAYING' });
@@ -885,7 +781,9 @@ function exitBtnHandler() {
 }
 
 function initTypingSettings() {
-	const punctToggle = document.getElementById('punctToggle');
+	const punctModeNone = document.getElementById('punctModeNone');
+	const punctModeSome = document.getElementById('punctModeSome');
+	const punctModeAll = document.getElementById('punctModeAll');
 	const voiceSelect = document.getElementById('voiceSelect');
 	const voiceRateNumber = document.getElementById('voiceRateNumber');
 	const voiceVolumeNumber = document.getElementById('voiceVolumeNumber');
@@ -906,12 +804,21 @@ function initTypingSettings() {
 	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
 	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
 
-	if (punctToggle) {
-		punctToggle.addEventListener('change', () => {
-			speakAllPunctuation = punctToggle.checked;
-			saveAppSetting(localStorage, 'speakAllPunctuation', speakAllPunctuation);
-		});
-	}
+	const syncPunctuationMode = () => {
+		if (punctModeAll?.checked) {
+			punctuationMode = 'all';
+		} else if (punctModeSome?.checked) {
+			punctuationMode = 'some';
+		} else {
+			punctuationMode = 'none';
+		}
+
+		saveAppSetting(localStorage, 'punctuationMode', punctuationMode);
+	};
+
+	punctModeNone?.addEventListener('change', syncPunctuationMode);
+	punctModeSome?.addEventListener('change', syncPunctuationMode);
+	punctModeAll?.addEventListener('change', syncPunctuationMode);
 
 	if (voiceSelect) {
 		voiceSelect.addEventListener('change', () => {
@@ -1002,8 +909,10 @@ function initTypingSettings() {
 		sentenceSpeechWords,
 		sentenceSpeechBoth,
 		sentenceSpeechMode,
-		punctToggle,
-		speakAllPunctuation,
+		punctuationModeNone: punctModeNone,
+		punctuationModeSome: punctModeSome,
+		punctuationModeAll: punctModeAll,
+		punctuationMode,
 		contentModeOriginal,
 		contentModeSet,
 		contentModeTraining,
@@ -1131,6 +1040,7 @@ function initTypingSettings() {
 		typingTrainingFieldset
 	});
 	applyTypingModeUIState({ typingMode, container, sentenceSpeechOptions });
+	syncPunctuationMode();
 	syncSentenceSpeechMode();
 }
 

@@ -164,12 +164,38 @@ Speak errors only
 
 <div class="setting-row">
 <input
-type="checkbox"
-name="punctuation"
-id="punctToggle"
+type="radio"
+name="punctuationMode"
+id="punctModeNone"
+value="none"
 >
-<label for="punctToggle">
-Speak All Punctuation
+<label for="punctModeNone">
+No punctuation
+</label>
+</div>
+
+<div class="setting-row">
+<input
+type="radio"
+name="punctuationMode"
+id="punctModeSome"
+value="some"
+checked
+>
+<label for="punctModeSome">
+Some punctuation
+</label>
+</div>
+
+<div class="setting-row">
+<input
+type="radio"
+name="punctuationMode"
+id="punctModeAll"
+value="all"
+>
+<label for="punctModeAll">
+All punctuation
 </label>
 </div>
 

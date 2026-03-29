@@ -79,18 +79,19 @@ export async function speakLinePrompt({ line, cancelSpeechIfSpeaking, resetSpeak
 	await speak(line);
 }
 
-export async function promptCharacter({ line, currentCharIndex, resetSpeakQueue, getSpokenChar, speak, speakAllPunctuation, speakPunctuation, expandPunctuationForSpeech }) {
+export async function promptCharacter({ line, currentCharIndex, resetSpeakQueue, getSpokenChar, speak, punctuationMode, applyPunctuationMode, expandSomePunctuationForSpeech, expandAllPunctuationForSpeech }) {
 	if (!line) {
 		return;
 	}
 
 	const char = line[currentCharIndex];
 	resetSpeakQueue();
-	let spoken = getSpokenChar(char);
-
-	if (speakAllPunctuation || speakPunctuation) {
-		spoken = expandPunctuationForSpeech(spoken);
-	}
+	const spoken = applyPunctuationMode({
+		text: getSpokenChar(char),
+		punctuationMode,
+		expandSomePunctuationForSpeech,
+		expandAllPunctuationForSpeech
+	});
 
 	await speak(spoken);
 }

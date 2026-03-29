@@ -1,3 +1,20 @@
+export function applyPunctuationMode({
+	text,
+	punctuationMode,
+	expandSomePunctuationForSpeech,
+	expandAllPunctuationForSpeech
+}) {
+	if (punctuationMode === 'all') {
+		return expandAllPunctuationForSpeech(text);
+	}
+
+	if (punctuationMode === 'some') {
+		return expandSomePunctuationForSpeech(text);
+	}
+
+	return text;
+}
+
 export function loadVoicesOnce({ speechSynthesis, setCachedVoices, populateVoiceSelect }) {
 	if (!speechSynthesis) {
 		return;
@@ -76,14 +93,16 @@ export function speakCharCutover({ spokenChar, cancelSpeechIfSpeaking, resetSpea
 	speak(spokenChar);
 }
 
-export function speak({ speechSynthesis, text, setIsSpeaking, speakAllPunctuation, speakPunctuation, expandPunctuationForSpeech, getSpeechRateFromPercent, getSpeechVolumeFromPercent, selectedVoiceRatePercent, selectedVoiceVolumePercent, selectedVoiceName, resolveCurrentVoiceByName, cachedVoices }) {
+export function speak({ speechSynthesis, text, setIsSpeaking, punctuationMode, expandSomePunctuationForSpeech, expandAllPunctuationForSpeech, getSpeechRateFromPercent, getSpeechVolumeFromPercent, selectedVoiceRatePercent, selectedVoiceVolumePercent, selectedVoiceName, resolveCurrentVoiceByName, cachedVoices }) {
 	return new Promise((resolve) => {
 		setIsSpeaking(true);
 
-		let textToSpeak = text;
-		if (speakAllPunctuation || speakPunctuation) {
-			textToSpeak = expandPunctuationForSpeech(textToSpeak);
-		}
+		const textToSpeak = applyPunctuationMode({
+			text,
+			punctuationMode,
+			expandSomePunctuationForSpeech,
+			expandAllPunctuationForSpeech
+		});
 
 		const utterance = new SpeechSynthesisUtterance(textToSpeak);
 		utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);

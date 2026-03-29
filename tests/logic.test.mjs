@@ -89,6 +89,7 @@ test('training helpers find rows and build lessons', () => {
 test('settings loader applies defaults and stored values', () => {
 	const storage = new Map([
 		['typingMode', 'word'],
+		['punctuationMode', 'some'],
 		['preferredVoiceRatePercent', '42'],
 		['preferredVoiceVolumePercent', '65'],
 		['soundEffectsEnabled', 'false']
@@ -101,8 +102,23 @@ test('settings loader applies defaults and stored values', () => {
 
 	const settings = loadAppSettings(fakeStorage);
 	assert.equal(settings.typingMode, 'word');
+	assert.equal(settings.punctuationMode, 'some');
 	assert.equal(settings.selectedVoiceRatePercent, 42);
 	assert.equal(settings.selectedVoiceVolumePercent, 65);
 	assert.equal(settings.soundEffectsEnabled, false);
 	assert.equal(settings.sentenceSpeechMode, 'errors');
+});
+
+test('settings loader migrates legacy punctuation checkbox values', () => {
+	const storage = new Map([
+		['speakAllPunctuation', 'true']
+	]);
+	const fakeStorage = {
+		getItem(key) {
+			return storage.has(key) ? storage.get(key) : null;
+		}
+	};
+
+	const settings = loadAppSettings(fakeStorage);
+	assert.equal(settings.punctuationMode, 'all');
 });

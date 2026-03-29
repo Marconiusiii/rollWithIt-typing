@@ -99,7 +99,7 @@ export function buildLessonPayload({
 		return {
 			lyricsText: set.lines.join('\n'),
 			activeContentTitle: set.title,
-			speakPunctuation: set.type === 'code'
+			usesCodingShortcuts: set.type === 'code'
 		};
 	}
 
@@ -112,7 +112,7 @@ export function buildLessonPayload({
 		return {
 			lyricsText: set.lines.join('\n'),
 			activeContentTitle: set.title,
-			speakPunctuation: set.type === 'code'
+			usesCodingShortcuts: set.type === 'code'
 		};
 	}
 
@@ -128,7 +128,7 @@ export function buildLessonPayload({
 		return {
 			lyricsText: customLines.join('\n'),
 			activeContentTitle: 'Custom Typing',
-			speakPunctuation: false
+			usesCodingShortcuts: false
 		};
 	}
 
@@ -143,7 +143,7 @@ export function buildLessonPayload({
 		return {
 			lyricsText: buildTrainingLessonText(found.row),
 			activeContentTitle: `${found.layout.name} - ${found.row.name}`,
-			speakPunctuation: true
+			usesCodingShortcuts: true
 		};
 	}
 
