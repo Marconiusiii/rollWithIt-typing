@@ -27,6 +27,19 @@ export function pauseTypingTimer({ accumulateElapsedTime, totalTypingTime, typin
 	};
 }
 
+export function pauseTypingTimerForPrompt({
+	typingMode,
+	pauseTimingForPrompt,
+	totalTypingTime,
+	typingStartTime
+}) {
+	return pauseTimingForPrompt({
+		typingMode,
+		totalTypingTime,
+		typingStartTime
+	});
+}
+
 export async function handleLineDone({
 	currentLineIndex,
 	lines,

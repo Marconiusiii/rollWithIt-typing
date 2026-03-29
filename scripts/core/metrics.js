@@ -29,3 +29,21 @@ export function accumulateElapsedTime(totalTypingTime, typingStartTime, now = Da
 
 	return totalTypingTime + (now - typingStartTime);
 }
+
+export function shouldPauseForPrompt(typingMode) {
+	return typingMode === 'guided' || typingMode === 'word';
+}
+
+export function pauseTimingForPrompt({ typingMode, accumulateElapsedTime, totalTypingTime, typingStartTime, now = Date.now() }) {
+	if (!shouldPauseForPrompt(typingMode)) {
+		return {
+			totalTypingTime,
+			typingStartTime
+		};
+	}
+
+	return {
+		totalTypingTime: accumulateElapsedTime(totalTypingTime, typingStartTime, now),
+		typingStartTime: null
+	};
+}

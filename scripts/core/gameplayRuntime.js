@@ -16,6 +16,7 @@ export async function handleCharacterInput({
 	lastErrorCharIndexSpoken,
 	setLastErrorCharIndexSpoken,
 	typingMode,
+	pauseTypingTimerForPrompt,
 	promptChar,
 	speakCharCutover,
 	getSpokenChar,
@@ -68,6 +69,7 @@ export async function handleCharacterInput({
 			setLastErrorCharIndexSpoken(currentCharIndex);
 
 			if (typingMode === 'guided') {
+				pauseTypingTimerForPrompt();
 				promptChar();
 			} else {
 				speakCharCutover(`${getSpokenChar(expected)} `);
@@ -110,6 +112,7 @@ export async function handleCharacterInput({
 	render();
 
 	if (typingMode === 'guided') {
+		pauseTypingTimerForPrompt();
 		promptChar();
 	} else if (typingMode === 'word') {
 		promptWord();

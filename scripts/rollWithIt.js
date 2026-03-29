@@ -472,8 +472,15 @@ async function speakCurrentWord() {
 }
 
 function pauseTypingTimer() {
-	const nextTimerState = LessonRuntime.pauseTypingTimer({
-		accumulateElapsedTime: Metrics.accumulateElapsedTime,
+	const nextTimerState = LessonRuntime.pauseTypingTimerForPrompt({
+		typingMode,
+		pauseTimingForPrompt: ({ typingMode, totalTypingTime, typingStartTime }) =>
+			Metrics.pauseTimingForPrompt({
+				typingMode,
+				accumulateElapsedTime: Metrics.accumulateElapsedTime,
+				totalTypingTime,
+				typingStartTime
+			}),
 		totalTypingTime,
 		typingStartTime
 	});
@@ -645,6 +652,7 @@ async function handleCharacterInput(char) {
 			lastErrorCharIndexSpoken = value;
 		},
 		typingMode,
+		pauseTypingTimerForPrompt: pauseTypingTimer,
 		promptChar,
 		speakCharCutover,
 		getSpokenChar,

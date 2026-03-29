@@ -5,7 +5,9 @@ import {
 	computeCorrectKeystrokes,
 	computeAccuracyPercent,
 	computeWpm,
-	accumulateElapsedTime
+	accumulateElapsedTime,
+	shouldPauseForPrompt,
+	pauseTimingForPrompt
 } from '../scripts/core/metrics.js';
 import {
 	MAX_CUSTOM_LINES,
@@ -36,6 +38,29 @@ test('metrics helpers compute correct values', () => {
 	assert.equal(computeWpm(0, 50, 0), 0);
 	assert.equal(computeWpm(60000, 50, 0, { trainingMode: true }), null);
 	assert.equal(accumulateElapsedTime(1000, 2000, 3500), 2500);
+	assert.equal(shouldPauseForPrompt('guided'), true);
+	assert.equal(shouldPauseForPrompt('word'), true);
+	assert.equal(shouldPauseForPrompt('sentence'), false);
+	assert.deepEqual(
+		pauseTimingForPrompt({
+			typingMode: 'guided',
+			accumulateElapsedTime,
+			totalTypingTime: 1000,
+			typingStartTime: 2000,
+			now: 3500
+		}),
+		{ totalTypingTime: 2500, typingStartTime: null }
+	);
+	assert.deepEqual(
+		pauseTimingForPrompt({
+			typingMode: 'sentence',
+			accumulateElapsedTime,
+			totalTypingTime: 1000,
+			typingStartTime: 2000,
+			now: 3500
+		}),
+		{ totalTypingTime: 1000, typingStartTime: 2000 }
+	);
 });
 
 test('text processing sanitizes and splits content safely', () => {
