@@ -8,18 +8,24 @@ This repository represents the non-joke, extensible version of the project. The 
 
 ## Version
 
-Current release: 1.7.0
+Current release: 1.8.0
 
 ## Features
 
 - Multiple typing modes
 	- Guided mode with character-by-character prompts
+	- Word mode with progressive word-by-word reveal and spoken word prompts
 	- Sentence mode with free typing and error feedback
 - Configurable speech verbosity for sentence mode
 	- Characters
 	- Words
 	- Characters and words
 	- Errors only
+- Speech controls
+	- Voice selection
+	- Speech rate slider
+	- Speech volume slider
+	- Voice sample playback
 - All Punctuation Spoken toggle
 - Sound Effects toggle
 - Multiple content sources
@@ -67,6 +73,7 @@ Key accessibility considerations include:
 - Clear separation between visual rendering and accessibility semantics
 - Sentence mode presents content as a single atomic text node for screen readers
 - Guided mode preserves per-character feedback without forcing per-character navigation
+- Word mode progressively reveals each line while keeping future words hidden until reached
 - Inert is used to prevent focus from moving into inactive sections
 - Programmatic focus management for state changes
 - No automatic announcements that interrupt typing flow
