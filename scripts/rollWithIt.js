@@ -10,6 +10,9 @@ import * as SfxRuntime from './core/sfxRuntime.js';
 import * as ModeRuntime from './core/modeRuntime.js';
 import * as ContentRuntime from './core/contentRuntime.js';
 import { applyResultsScreen } from './core/resultsRuntime.js';
+import { runInitialLessonPrompt, setScreenState } from './core/lifecycleRuntime.js';
+import { initInputHooks } from './core/inputRuntime.js';
+import { initButtons, initFooterYear } from './core/uiRuntime.js';
 import {
 	applyPersistedSettingsToUI,
 	applyTypingModeUIState,
@@ -281,57 +284,6 @@ function populateContentSetSelect() {
 		contentSetSelect,
 		typingContentSets
 	});
-}
-
-function setScreenState(targetState) {
-	const appHeader = document.querySelector('.app-header');
-	const gameScreen = document.getElementById('game-screen');
-	const resultsScreen = document.getElementById('results-screen');
-	const footer = document.getElementById('footer');
-
-	if (targetState === 'MENU') {
-		document.title = 'Roll with It Typing';
-
-		appHeader.classList.remove('hidden');
-		appHeader.removeAttribute('inert');
-
-		gameScreen.classList.add('hidden');
-		gameScreen.setAttribute('inert', '');
-
-		resultsScreen.classList.add('hidden');
-		resultsScreen.setAttribute('inert', '');
-
-		footer.classList.remove('hidden');
-		footer.removeAttribute('inert');
-	}
-
-	if (targetState === 'PLAYING') {
-		appHeader.classList.add('hidden');
-		appHeader.setAttribute('inert', '');
-
-		gameScreen.classList.remove('hidden');
-		gameScreen.removeAttribute('inert');
-
-		resultsScreen.classList.add('hidden');
-		resultsScreen.setAttribute('inert', '');
-
-		footer.classList.add('hidden');
-		footer.setAttribute('inert', '');
-	}
-
-	if (targetState === 'RESULTS') {
-		appHeader.classList.add('hidden');
-		appHeader.setAttribute('inert', '');
-
-		gameScreen.classList.add('hidden');
-		gameScreen.setAttribute('inert', '');
-
-		resultsScreen.classList.remove('hidden');
-		resultsScreen.removeAttribute('inert');
-
-		footer.classList.add('hidden');
-		footer.setAttribute('inert', '');
-	}
 }
 
 function loadVoicesOnce() {
@@ -638,22 +590,20 @@ async function startTypingLesson() {
 	totalTypingTime = 0;
 
 	render();
-	playIntroRickStinger();
-
-	if (shouldSpeakInitialPrompt) {
-		cancelSpeechIfSpeaking();
-		resetSpeakQueue();
-		await waitForSpeechReset();
-		await speak(getStartAnnouncementText());
-
-		if (typingMode === 'guided') {
-			await promptChar();
-		} else if (typingMode === 'word') {
-			await promptWord();
-		} else {
-			await speakLineOnce();
-		}
-	}
+	await runInitialLessonPrompt({
+		shouldSpeakInitialPrompt,
+		cancelSpeechIfSpeaking,
+		resetSpeakQueue,
+		waitForSpeechReset,
+		speak,
+		getStartAnnouncementText,
+		playIntroStinger: playIntroRickStinger,
+		introStingerDurationMs: SfxRuntime.getIntroRickStingerDurationMs(),
+		typingMode,
+		promptChar,
+		promptWord,
+		speakLineOnce
+	});
 }
 
 async function handleLineDone() {
@@ -881,7 +831,7 @@ function finishGame() {
 	typingStartTime = null;
 
 	gameState = 'RESULTS';
-	setScreenState('RESULTS');
+	setScreenState({ document, targetState: 'RESULTS' });
 	applyResultsScreen({
 		document,
 		contentMode,
@@ -944,7 +894,7 @@ function startBtnHandler() {
 	speakPunctuation = lessonPayload.speakPunctuation;
 
 	gameState = 'PLAYING';
-	setScreenState('PLAYING');
+	setScreenState({ document, targetState: 'PLAYING' });
 
 	if (activeContentTitle) {
 		document.title = `${activeContentTitle} - Roll With It`;
@@ -962,64 +912,6 @@ function startBtnHandler() {
 function exitBtnHandler() {
 	if (gameState === 'PLAYING') {
 		finishGame();
-	}
-}
-
-function initFooterYear() {
-	const yearEl = document.getElementById('copyrightYear');
-	if (yearEl) {
-		yearEl.textContent = new Date().getFullYear();
-	}
-}
-
-function initInputHooks() {
-	if (captureSurface) {
-		captureSurface.setAttribute('tabindex', '-1');
-	}
-
-	if (!activatorInput) {
-		return;
-	}
-
-	activatorInput.addEventListener('beforeinput', handleBeforeInput);
-	activatorInput.addEventListener('keydown', handleKeyDown);
-}
-
-function initButtons() {
-	const startLessonButton = document.getElementById('startLessonButton');
-	const exitLessonButton = document.getElementById('exitLessonButton');
-	const closeResultsButton = document.getElementById('closeResultsButton');
-const resetSpeechButton = document.getElementById('resetSpeechButton');
-
-if (resetSpeechButton) {
-	if (isChrome) {
-		resetSpeechButton.addEventListener('click', () => {
-			hardResetSpeechSynthesis();
-		});
-	} else {
-		// Hide in non-Chrome browsers
-		resetSpeechButton.style.display = 'none';
-	}
-}
-
-	if (startLessonButton) {
-		startLessonButton.addEventListener('click', startBtnHandler);
-	}
-
-	if (exitLessonButton) {
-		exitLessonButton.addEventListener('click', exitBtnHandler);
-	}
-
-	if (closeResultsButton) {
-		closeResultsButton.addEventListener('click', () => {
-			if (gameState !== 'RESULTS') {
-				return;
-			}
-
-			gameState = 'MENU';
-			setScreenState('MENU');
-			document.getElementById('startLessonButton')?.focus();
-		});
 	}
 }
 
@@ -1280,9 +1172,28 @@ function init() {
 	populateTypingTrainingSelect();
 
 	initTypingSettings();
-	initInputHooks();
-	initButtons();
-	initFooterYear();
+	initInputHooks({
+		captureSurface,
+		activatorInput,
+		handleBeforeInput,
+		handleKeyDown
+	});
+	initButtons({
+		document,
+		isChrome,
+		startBtnHandler,
+		exitBtnHandler,
+		hardResetSpeechSynthesis,
+		setMenuState: () => {
+			if (gameState !== 'RESULTS') {
+				return;
+			}
+
+			gameState = 'MENU';
+			setScreenState({ document, targetState: 'MENU' });
+		}
+	});
+	initFooterYear(document);
 }
 
 init();

@@ -1,3 +1,11 @@
+export function getIntroRickStingerDurationMs() {
+	const tempo = 114;
+	const beat = 60 / tempo;
+	const sixteenth = beat / 4;
+
+	return Math.ceil((4 * sixteenth + 0.08) * 1000);
+}
+
 export function playTypewriterBell({ audioCtx, soundEffectsEnabled }) {
 	if (!soundEffectsEnabled) {
 		return;
