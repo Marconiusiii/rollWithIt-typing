@@ -260,6 +260,11 @@ details.game-settings details[open] > summary {
 	outline-offset: 2px;
 }
 
+.typing-display .current-space {
+	outline: 2px solid #38bdf8;
+	outline-offset: 2px;
+}
+
 .cursor {
 	display: inline-block;
 	width: 2px;

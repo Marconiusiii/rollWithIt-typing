@@ -17,6 +17,7 @@ let sentenceSpeechMode = 'errors';
 let contentMode = 'original';
 let selectedVoiceName = null;
 let selectedVoiceRatePercent = 30;
+let selectedVoiceVolumePercent = 100;
 let activeContentTitle = '';
 let speakPunctuation = false;
 let shouldSpeakInitialPrompt = true;
@@ -226,6 +227,11 @@ function getSpeechRateFromPercent(percent) {
 	return minRate + (clampedPercent / 100) * (maxRate - minRate);
 }
 
+function getSpeechVolumeFromPercent(percent) {
+	const clampedPercent = Math.max(0, Math.min(100, percent));
+	return clampedPercent / 100;
+}
+
 function updateProgressStatus() {
 	if (!progressStatus || !lines || lines.length === 0) {
 		return;
@@ -272,8 +278,7 @@ function unlockSpeechSynthesis() {
 
 	const utterance = new SpeechSynthesisUtterance(' ');
 	utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
-
-	utterance.volume = 0;
+	utterance.volume = getSpeechVolumeFromPercent(selectedVoiceVolumePercent);
 
 	window.speechSynthesis.speak(utterance);
 }
@@ -451,6 +456,7 @@ function hardResetSpeechSynthesis() {
 		try {
 			const confirm = new SpeechSynthesisUtterance('Speech reset.');
 			confirm.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
+			confirm.volume = getSpeechVolumeFromPercent(selectedVoiceVolumePercent);
 
 			const voice = selectedVoiceName
 				? resolveCurrentVoiceByName(selectedVoiceName)
@@ -483,6 +489,7 @@ function speak(text) {
 
 		const utterance = new SpeechSynthesisUtterance(textToSpeak);
 utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
+utterance.volume = getSpeechVolumeFromPercent(selectedVoiceVolumePercent);
 
 let voice = null;
 
@@ -625,6 +632,47 @@ function playTypewriterBell() {
 	strikeOsc.stop(now + 0.3);
 	bodyOsc.stop(now + 1.0);
 	bassOsc.stop(now + 0.6);
+}
+
+function playIntroRickStinger() {
+	if (!soundEffectsEnabled) {
+		return;
+	}
+
+	if (audioCtx.state === 'suspended') {
+		audioCtx.resume();
+	}
+
+	const now = audioCtx.currentTime;
+	const tempo = 114;
+	const beat = 60 / tempo;
+	const sixteenth = beat / 4;
+
+	const introNotes = [
+		261.63,
+		349.23,
+		392.0,
+		523.25
+	];
+
+	introNotes.forEach((freq, index) => {
+		const startTime = now + index * sixteenth;
+		const osc = audioCtx.createOscillator();
+		const gain = audioCtx.createGain();
+
+		osc.type = index === introNotes.length - 1 ? 'sawtooth' : 'triangle';
+		osc.frequency.setValueAtTime(freq, startTime);
+
+		gain.gain.setValueAtTime(0, startTime);
+		gain.gain.linearRampToValueAtTime(0.12, startTime + 0.01);
+		gain.gain.exponentialRampToValueAtTime(0.001, startTime + sixteenth * 0.95);
+
+		osc.connect(gain);
+		gain.connect(audioCtx.destination);
+
+		osc.start(startTime);
+		osc.stop(startTime + sixteenth);
+	});
 }
 
 function playFinalRickChordProgression() {
@@ -783,6 +831,28 @@ function render() {
 		return;
 	}
 
+	if (typingMode === 'word') {
+		const currentWord = getCurrentWordRange(line, currentCharIndex);
+		const revealUntil = line[currentCharIndex] === ' '
+			? currentCharIndex + 1
+			: (currentWord ? currentWord.end : line.length);
+
+		for (let i = 0; i < revealUntil; i++) {
+			const span = document.createElement('span');
+			span.textContent = line[i] === ' ' ? '\u00A0' : line[i];
+
+			if (i < currentCharIndex) {
+				span.className = 'correct';
+			} else if (i === currentCharIndex) {
+				span.className = line[i] === ' ' ? 'current-space' : 'current';
+			}
+
+			container.appendChild(span);
+		}
+
+		return;
+	}
+
 	for (let i = 0; i < line.length; i++) {
 		const span = document.createElement('span');
 		span.textContent = line[i] === ' ' ? '\u00A0' : line[i];
@@ -794,6 +864,102 @@ function render() {
 		}
 
 		container.appendChild(span);
+	}
+}
+
+function getCurrentWordRange(line, charIndex) {
+	if (!line) {
+		return null;
+	}
+
+	if (charIndex >= line.length) {
+		return {
+			start: line.length,
+			end: line.length
+		};
+	}
+
+	let start = charIndex;
+
+	if (line[charIndex] === ' ') {
+		start = charIndex + 1;
+
+		while (start < line.length && line[start] === ' ') {
+			start++;
+		}
+
+		let end = start;
+
+		while (end < line.length && line[end] !== ' ') {
+			end++;
+		}
+
+		return {
+			start,
+			end
+		};
+	}
+
+	while (start > 0 && line[start - 1] !== ' ') {
+		start--;
+	}
+
+	let end = charIndex;
+
+	while (end < line.length && line[end] !== ' ') {
+		end++;
+	}
+
+	return {
+		start,
+		end
+	};
+}
+
+function getCurrentWord(line, charIndex) {
+	const range = getCurrentWordRange(line, charIndex);
+	if (!range || range.start >= range.end) {
+		return '';
+	}
+
+	return line.slice(range.start, range.end);
+}
+
+function isAtWordBoundary(line, charIndex) {
+	if (!line || charIndex >= line.length) {
+		return false;
+	}
+
+	if (line[charIndex] === ' ') {
+		return false;
+	}
+
+	return charIndex === 0 || line[charIndex - 1] === ' ';
+}
+
+async function speakCurrentWord() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	const word = getCurrentWord(line, currentCharIndex);
+	if (!word) {
+		return;
+	}
+
+	resetSpeakQueue();
+	await speak(word);
+}
+
+async function promptWord() {
+	const line = lines[currentLineIndex];
+	if (!line) {
+		return;
+	}
+
+	if (isAtWordBoundary(line, currentCharIndex)) {
+		await speakCurrentWord();
 	}
 }
 
@@ -983,6 +1149,7 @@ async function startTypingLesson() {
 	totalTypingTime = 0;
 
 	render();
+	playIntroRickStinger();
 
 	if (shouldSpeakInitialPrompt) {
 		cancelSpeechIfSpeaking();
@@ -992,6 +1159,8 @@ async function startTypingLesson() {
 
 		if (typingMode === 'guided') {
 			await promptChar();
+		} else if (typingMode === 'word') {
+			await promptWord();
 		} else {
 			await speakLineOnce();
 		}
@@ -1017,6 +1186,8 @@ async function handleLineDone() {
 
 	if (typingMode === 'guided') {
 		await promptChar();
+	} else if (typingMode === 'word') {
+		await promptWord();
 	} else {
 		await speakLineOnce();
 	}
@@ -1059,6 +1230,8 @@ if (!matches) {
 
 		if (typingMode === 'guided') {
 			promptChar();
+		} else if (typingMode === 'word') {
+			speakCharCutover(`${getSpokenChar(expected)} `);
 		} else {
 			speakCharCutover(`${getSpokenChar(expected)} `);
 		}
@@ -1103,6 +1276,8 @@ if (!matches) {
 
 	if (typingMode === 'guided') {
 		promptChar();
+	} else if (typingMode === 'word') {
+		promptWord();
 	}
 }
 
@@ -1534,6 +1709,7 @@ function initTypingSettings() {
 	}
 
 const voiceRateNumber = document.getElementById('voiceRateNumber');
+const voiceVolumeNumber = document.getElementById('voiceVolumeNumber');
 const playVoiceSampleBtn = document.getElementById('playVoiceSample');
 
 if (voiceRateNumber) {
@@ -1552,6 +1728,26 @@ if (voiceRateNumber) {
 		localStorage.setItem(
 			'preferredVoiceRatePercent',
 			selectedVoiceRatePercent
+		);
+	});
+}
+
+if (voiceVolumeNumber) {
+	voiceVolumeNumber.value = selectedVoiceVolumePercent;
+
+	voiceVolumeNumber.addEventListener('input', () => {
+		let value = parseInt(voiceVolumeNumber.value, 10);
+
+		if (isNaN(value)) {
+			return;
+		}
+
+		value = Math.max(0, Math.min(100, value));
+		selectedVoiceVolumePercent = value;
+
+		localStorage.setItem(
+			'preferredVoiceVolumePercent',
+			selectedVoiceVolumePercent
 		);
 	});
 }
@@ -1581,6 +1777,7 @@ if (playVoiceSampleBtn) {
 	const customContentFieldset = document.getElementById('customContentFieldset');
 
 	const typingModeGuided = document.getElementById('typingModeGuided');
+	const typingModeWord = document.getElementById('typingModeWord');
 	const typingModeSentence = document.getElementById('typingModeSentence');
 	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
 
@@ -1642,6 +1839,22 @@ if (playVoiceSampleBtn) {
 
 				if (sentenceSpeechOptions) {
 					sentenceSpeechOptions.disabled = false;
+				}
+			}
+		});
+	}
+
+	if (typingModeWord) {
+		typingModeWord.addEventListener('change', () => {
+			if (typingModeWord.checked) {
+				typingMode = 'word';
+
+				if (container) {
+					container.removeAttribute('role');
+				}
+
+				if (sentenceSpeechOptions) {
+					sentenceSpeechOptions.disabled = true;
 				}
 			}
 		});
@@ -1751,14 +1964,30 @@ if (playVoiceSampleBtn) {
 		}
 	}
 
+	if (typingModeWord && typingModeWord.checked) {
+		typingMode = 'word';
+
+		if (container) {
+			container.removeAttribute('role');
+		}
+
+		if (sentenceSpeechOptions) {
+			sentenceSpeechOptions.disabled = true;
+		}
+	}
+
 	syncSentenceSpeechModeFromUI();
 }
 
 function init() {
 	selectedVoiceName = localStorage.getItem('preferredVoice');
 	const savedRatePercent = localStorage.getItem('preferredVoiceRatePercent');
+	const savedVolumePercent = localStorage.getItem('preferredVoiceVolumePercent');
 	if (savedRatePercent !== null) {
 		selectedVoiceRatePercent = parseInt(savedRatePercent, 10);
+	}
+	if (savedVolumePercent !== null) {
+		selectedVoiceVolumePercent = parseInt(savedVolumePercent, 10);
 	}
 	loadVoicesOnce();
 	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;

@@ -20,12 +20,10 @@
 By Chancey Fleet and Marco Salsiccia.
 </p>
 <details class="game-settings">
-<summary>Feb 21, 2026 Update Log</summary>
+<summary>Mar 28, 2026 Update Log</summary>
 <ul>
-<li>Added Romance, Disability Rights, Digital Accessibility, HTML Fundamentals, MacOS Terminal Fundamentals, and Windows Command Prompt coding sets.</li>
-<li>Added Control key modifier for keyboard shortcuts when typing in Coding lessons.</li>
-<li>Turning Sound Effects off now includes muting the Error sound.</li>
-<li>Under-the-hood code improvements for accessibility and usability.</li>
+<li>Added a new Word typing mode. Now instead of characters or full sentences, you are now prompted with the line content word by word. Just type the word and press space to move onto the next word of the line.</li>
+<li>Added a Speech Volume control to the Typing Settings as well to go along with the speech rate slider, just in case the voice is too loud.</li>
 </ul>
 
 </details>
@@ -72,6 +70,18 @@ value="guided"
 >
 <label for="typingModeGuided">
 Guided mode (letter by letter)
+</label>
+</div>
+
+<div class="setting-row">
+<input
+type="radio"
+name="typingMode"
+id="typingModeWord"
+value="word"
+>
+<label for="typingModeWord">
+Word mode (progressive reveal)
 </label>
 </div>
 
@@ -196,12 +206,25 @@ Speech Rate
 </label>
 
 <input
-type="number"
+type="range"
 id="voiceRateNumber"
 min="0"
 max="100"
 step="1"
 value="30"
+>
+
+<label for="voiceVolumeNumber">
+Speech Volume
+</label>
+
+<input
+type="range"
+id="voiceVolumeNumber"
+min="0"
+max="100"
+step="1"
+value="100"
 >
 
 
@@ -614,7 +637,7 @@ Close Results
 
 <p class="footer-copy small muted">
 &copy;<span id="copyrightYear"></span>
-Chancey Fleet and Marco Salsiccia, v.1.7.0
+Chancey Fleet and Marco Salsiccia, v.1.8.0
 </p>
 </footer>
 
