@@ -1,13 +1,13 @@
 // Roll With It Typing Tutor by Chancey Fleet and Marco Salsiccia
 
-import * as Metrics from './core/metrics.mjs';
-import * as TextProcessing from './core/textProcessing.mjs';
-import * as WordMode from './core/wordMode.mjs';
-import * as Training from './core/training.mjs';
-import { loadAppSettings, saveAppSetting } from './core/settings.mjs';
-import * as SpeechRuntime from './core/speechRuntime.mjs';
-import * as SfxRuntime from './core/sfxRuntime.mjs';
-import * as ModeRuntime from './core/modeRuntime.mjs';
+import * as Metrics from './core/metrics.js';
+import * as TextProcessing from './core/textProcessing.js';
+import * as WordMode from './core/wordMode.js';
+import * as Training from './core/training.js';
+import { loadAppSettings, saveAppSetting } from './core/settings.js';
+import * as SpeechRuntime from './core/speechRuntime.js';
+import * as SfxRuntime from './core/sfxRuntime.js';
+import * as ModeRuntime from './core/modeRuntime.js';
 
 const typingContentSets = globalThis.typingContentSets || [];
 const typingTrainingSets = globalThis.typingTrainingSets || {};

@@ -6,13 +6,13 @@ import {
 	computeAccuracyPercent,
 	computeWpm,
 	accumulateElapsedTime
-} from '../scripts/core/metrics.mjs';
+} from '../scripts/core/metrics.js';
 import {
 	MAX_CUSTOM_LINES,
 	sanitizeText,
 	buildLinesFromText,
 	enforceLineLimitValue
-} from '../scripts/core/textProcessing.mjs';
+} from '../scripts/core/textProcessing.js';
 import {
 	getCurrentWordRange,
 	getCurrentWord,
@@ -21,13 +21,13 @@ import {
 	isWordEnd,
 	getExpectedWord,
 	getLastWord
-} from '../scripts/core/wordMode.mjs';
+} from '../scripts/core/wordMode.js';
 import {
 	shuffleArray,
 	findTypingTrainingRowById,
 	buildTrainingLessonText
-} from '../scripts/core/training.mjs';
-import { loadAppSettings } from '../scripts/core/settings.mjs';
+} from '../scripts/core/training.js';
+import { loadAppSettings } from '../scripts/core/settings.js';
 
 test('metrics helpers compute correct values', () => {
 	assert.equal(computeCorrectKeystrokes(50, 5), 45);
