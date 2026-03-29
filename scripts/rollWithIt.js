@@ -6,9 +6,12 @@ import * as WordMode from './core/wordMode.js';
 import * as Training from './core/training.js';
 import { loadAppSettings, saveAppSetting } from './core/settings.js';
 import * as SpeechRuntime from './core/speechRuntime.js';
+import * as SpeechHelpersRuntime from './core/speechHelpersRuntime.js';
 import * as SfxRuntime from './core/sfxRuntime.js';
 import * as ModeRuntime from './core/modeRuntime.js';
 import * as ContentRuntime from './core/contentRuntime.js';
+import * as CustomContentRuntime from './core/customContentRuntime.js';
+import * as LessonRuntime from './core/lessonRuntime.js';
 import { applyResultsScreen } from './core/resultsRuntime.js';
 import { runInitialLessonPrompt, setScreenState } from './core/lifecycleRuntime.js';
 import { initInputHooks } from './core/inputRuntime.js';
@@ -210,14 +213,11 @@ function getSpeechVolumeFromPercent(percent) {
 }
 
 function updateProgressStatus() {
-	if (!progressStatus || !lines || lines.length === 0) {
-		return;
-	}
-
-	const completed = currentLineIndex;
-	const total = lines.length;
-
-	progressStatus.textContent = `${completed} out of ${total} lines complete`;
+	LessonRuntime.updateProgressStatus({
+		progressStatus,
+		lines,
+		currentLineIndex
+	});
 }
 function waitForSpeechReset() {
 	return new Promise(resolve => setTimeout(resolve, 50));
@@ -371,7 +371,7 @@ function speakChar(char) {
 }
 
 function speakRemainingLine() {
-	SpeechRuntime.speakRemainingLine({
+	SpeechHelpersRuntime.speakRemainingLineShortcut({
 		lines,
 		currentLineIndex,
 		currentCharIndex,
@@ -383,7 +383,7 @@ function speakRemainingLine() {
 }
 
 function speakExpectedWord() {
-	SpeechRuntime.speakExpectedWord({
+	SpeechHelpersRuntime.speakExpectedWordShortcut({
 		lines,
 		currentLineIndex,
 		currentCharIndex,
@@ -395,7 +395,7 @@ function speakExpectedWord() {
 }
 
 function replayExpectedChar() {
-	SpeechRuntime.replayExpectedChar({
+	SpeechHelpersRuntime.replayExpectedCharShortcut({
 		lines,
 		currentLineIndex,
 		currentCharIndex,
@@ -456,8 +456,14 @@ async function speakCurrentWord() {
 }
 
 function pauseTypingTimer() {
-	totalTypingTime = Metrics.accumulateElapsedTime(totalTypingTime, typingStartTime);
-	typingStartTime = null;
+	const nextTimerState = LessonRuntime.pauseTypingTimer({
+		accumulateElapsedTime: Metrics.accumulateElapsedTime,
+		totalTypingTime,
+		typingStartTime
+	});
+
+	totalTypingTime = nextTimerState.totalTypingTime;
+	typingStartTime = nextTimerState.typingStartTime;
 }
 
 async function promptWord() {
@@ -517,53 +523,26 @@ function buildLinesFromText(text) {
 }
 
 function enforceLineLimit(textarea) {
-	if (!textarea) {
-		return;
-	}
-
-	textarea.value = TextProcessing.enforceLineLimitValue(
-		textarea.value,
-		MAX_CUSTOM_LINES
-	);
+	CustomContentRuntime.enforceLineLimit({
+		textarea,
+		enforceLineLimitValue: TextProcessing.enforceLineLimitValue,
+		maxCustomLines: MAX_CUSTOM_LINES
+	});
 }
 
 function clearCustomContentError() {
-	const input = document.getElementById('customContentInput');
-	const error = document.getElementById('customContentError');
-
-	if (input) {
-		input.classList.remove('has-error');
-	}
-
-	if (error) {
-		error.classList.add('hidden');
-	}
+	CustomContentRuntime.clearCustomContentError(document);
 }
 
 function showCustomContentError() {
-	const input = document.getElementById('customContentInput');
-	const error = document.getElementById('customContentError');
-
-	if (input) {
-		input.classList.add('has-error');
-		input.focus();
-	}
-
-	if (error) {
-		error.classList.remove('hidden');
-	}
+	CustomContentRuntime.showCustomContentError(document);
 }
 
 function getStartAnnouncementText() {
-	if (contentMode === 'custom') {
-		return 'Starting Custom Lesson';
-	}
-
-	if (activeContentTitle) {
-		return `Starting ${activeContentTitle} Lesson`;
-	}
-
-	return 'Starting Lesson';
+	return LessonRuntime.getStartAnnouncementText({
+		contentMode,
+		activeContentTitle
+	});
 }
 
 async function startTypingLesson() {
@@ -607,29 +586,19 @@ async function startTypingLesson() {
 }
 
 async function handleLineDone() {
-	const isFinalLine = currentLineIndex >= lines.length;
-
-	if (!isFinalLine) {
-		if (contentMode !== 'training') {
-			playTypewriterBell();
-		}
-	} else {
-		playFinalRickChordProgression();
-		setTimeout(() => {
-			finishGame();
-		}, 1500);
-		return;
-	}
-
-	render();
-
-	if (typingMode === 'guided') {
-		await promptChar();
-	} else if (typingMode === 'word') {
-		await promptWord();
-	} else {
-		await speakLineOnce();
-	}
+	await LessonRuntime.handleLineDone({
+		currentLineIndex,
+		lines,
+		contentMode,
+		playTypewriterBell,
+		playFinalRickChordProgression,
+		finishGame,
+		render,
+		typingMode,
+		promptChar,
+		promptWord,
+		speakLineOnce
+	});
 }
 
 async function handleCharacterInput(char) {
