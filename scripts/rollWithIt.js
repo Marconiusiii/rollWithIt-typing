@@ -8,6 +8,14 @@ import { loadAppSettings, saveAppSetting } from './core/settings.js';
 import * as SpeechRuntime from './core/speechRuntime.js';
 import * as SfxRuntime from './core/sfxRuntime.js';
 import * as ModeRuntime from './core/modeRuntime.js';
+import * as ContentRuntime from './core/contentRuntime.js';
+import { applyResultsScreen } from './core/resultsRuntime.js';
+import {
+	applyPersistedSettingsToUI,
+	applyTypingModeUIState,
+	syncSentenceSpeechModeFromUI,
+	updateContentModeUIFromRadios
+} from './core/settingsRuntime.js';
 
 const typingContentSets = globalThis.typingContentSets || [];
 const typingTrainingSets = globalThis.typingTrainingSets || {};
@@ -151,71 +159,22 @@ function populateVoiceSelect() {
 }
 
 function populateTypingTrainingSelect() {
-	if (!typingTrainingSelect) {
-		return;
-	}
-
-	typingTrainingSelect.innerHTML = '';
-
-	Object.values(typingTrainingSets).forEach(layout => {
-		const optgroup = document.createElement('optgroup');
-		optgroup.label = layout.name;
-
-		Object.values(layout.rows).forEach(row => {
-			const option = document.createElement('option');
-			option.value = row.id;
-			option.textContent = row.name;
-			optgroup.appendChild(option);
-		});
-
-		typingTrainingSelect.appendChild(optgroup);
+	ContentRuntime.populateTypingTrainingSelect({
+		typingTrainingSelect,
+		typingTrainingSets
 	});
-}
-
-function updateContentModeUIFromRadios() {
-	let selectedMode = null;
-
-	contentModeRadios.forEach(radio => {
-		if (radio.checked) {
-			selectedMode = radio.value;
-		}
-	});
-
-	if (!selectedMode) {
-		return;
-	}
-
-	// Default: disable everything
-	if (contentSetFieldset) {
-		contentSetFieldset.disabled = true;
-	}
-	if (customContentFieldset) {
-		customContentFieldset.disabled = true;
-	}
-	if (typingTrainingFieldset) {
-		typingTrainingFieldset.disabled = true;
-	}
-
-	// Enable only the active mode
-	if (selectedMode === 'set' && contentSetFieldset) {
-		contentSetFieldset.disabled = false;
-	}
-
-	if (selectedMode === 'custom' && customContentFieldset) {
-		customContentFieldset.disabled = false;
-	}
-
-	if (selectedMode === 'training' && typingTrainingFieldset) {
-		typingTrainingFieldset.disabled = false;
-	}
 }
 
 contentModeRadios.forEach(radio => {
 	radio.addEventListener('change', () => {
-		updateContentModeUIFromRadios();
+		updateContentModeUIFromRadios({
+			contentModeRadios,
+			contentSetFieldset,
+			customContentFieldset,
+			typingTrainingFieldset
+		});
 	});
 });
-
 
 function resolveCurrentVoiceByName(name) {
 	if (!name || !window.speechSynthesis) {
@@ -318,43 +277,10 @@ function errorKeysToString() {
 }
 
 function populateContentSetSelect() {
-	if (!contentSetSelect) {
-		return;
-	}
-
-	contentSetSelect.innerHTML = '';
-
-	const nonCodeSets = [];
-	const codeSets = [];
-
-	for (const set of typingContentSets) {
-		if (set.type === 'code') {
-			codeSets.push(set);
-		} else {
-			nonCodeSets.push(set);
-		}
-	}
-
-	for (const set of nonCodeSets) {
-		const option = document.createElement('option');
-		option.value = set.id;
-		option.textContent = set.title;
-		contentSetSelect.appendChild(option);
-	}
-
-	if (codeSets.length > 0) {
-		const codingGroup = document.createElement('optgroup');
-		codingGroup.label = 'Coding';
-
-		for (const set of codeSets) {
-			const option = document.createElement('option');
-			option.value = set.id;
-			option.textContent = set.title;
-			codingGroup.appendChild(option);
-		}
-
-		contentSetSelect.appendChild(codingGroup);
-	}
+	ContentRuntime.populateContentSetSelect({
+		contentSetSelect,
+		typingContentSets
+	});
 }
 
 function setScreenState(targetState) {
@@ -956,104 +882,19 @@ function finishGame() {
 
 	gameState = 'RESULTS';
 	setScreenState('RESULTS');
-
-	if (contentMode === 'training') {
-		document.title = 'Training Results - Roll With It';
-	} else if (activeContentTitle) {
-		document.title = `${activeContentTitle} Typing Results - Roll With It`;
-	} else {
-		document.title = 'Typing Results - Roll With It';
-	}
-
-	const resultsHeading = document.getElementById('resultsHeading');
-
-	if (resultsHeading) {
-		if (contentMode === 'training') {
-			resultsHeading.textContent = 'Training Results';
-		} else if (activeContentTitle) {
-			resultsHeading.textContent = `${activeContentTitle} Results`;
-		} else {
-			resultsHeading.textContent = 'Typing Results';
-		}
-		resultsHeading.focus();
-	}
-
-	let desertLabel = document.getElementById('desertLabel');
-	const correctKeystrokes = Metrics.computeCorrectKeystrokes(totalKeystrokes, errors);
-	const wpm = Metrics.computeWpm(
+	applyResultsScreen({
+		document,
+		contentMode,
+		activeContentTitle,
 		totalTypingTime,
 		totalKeystrokes,
 		errors,
-		{ trainingMode: contentMode === 'training' }
-	);
-	const acc = Metrics.computeAccuracyPercent(totalKeystrokes, errors);
-
-	const wpmVal = document.getElementById('wpm-val');
-	const accVal = document.getElementById('accuracy-val');
-	const errVal = document.getElementById('err-val');
-	const desertVal = document.getElementById('desert-val');
-
-	if (wpmVal) {
-		if (contentMode === 'training') {
-			wpmVal.textContent = 'Not calculated in Training Mode.';
-		} else {
-			wpmVal.textContent = `${wpm}`;
-		}
-	}
-
-	if (accVal) {
-		accVal.textContent = `${acc}%`;
-	}
-	if (errVal) {
-		errVal.textContent = `${errors}`;
-	}
-
-	if (errorKeys.size === 0) {
-		desertLabel.textContent = "No keys deserted you this time!";
-		desertVal.textContent = '';
-	} else {
-		desertLabel.textContent = "Practice these keys so they don't desert you again: ";
-		desertVal.textContent = errorKeysToString();
-	}
-
-	const wpmNote = document.getElementById('wpmNote');
-
-	if (wpmNote) {
-		if (contentMode === 'training') {
-			wpmNote.textContent = '';
-			wpmNote.classList.add('hidden');
-		} else if (totalTypingTime === 0 || correctKeystrokes === 0) {
-			wpmNote.textContent = 'Never gonna give you a speed score. You didn’t type long enough for us to measure it.';
-			wpmNote.classList.remove('hidden');
-		} else {
-			wpmNote.textContent = '';
-			wpmNote.classList.add('hidden');
-		}
-	}
-}
-
-function getRandomContentSet() {
-	const eligibleSets = typingContentSets.filter(set => set.type !== 'code');
-
-	if (eligibleSets.length === 0) {
-		return null;
-	}
-
-	const index = Math.floor(Math.random() * eligibleSets.length);
-	return eligibleSets[index];
-}
-
-function getSelectedContentSet() {
-	const select = document.getElementById('contentSetSelect');
-	if (!select) {
-		return null;
-	}
-
-	return typingContentSets.find(set => set.id === select.value) || null;
-}
-
-function shuffleArray(arr) {
-	return Training.shuffleArray(arr);
+		errorKeys,
+		errorKeysToString,
+		computeCorrectKeystrokes: Metrics.computeCorrectKeystrokes,
+		computeWpm: Metrics.computeWpm,
+		computeAccuracyPercent: Metrics.computeAccuracyPercent
+	});
 }
 
 function findTypingTrainingRowById(rowId) {
@@ -1071,59 +912,36 @@ function startBtnHandler() {
 		return;
 	}
 
-	if (contentMode === 'original') {
-		const set = getRandomContentSet();
-		if (!set) {
-			speak('No typing content sets are available.');
-			return;
-		}
+	const customContentInput = document.getElementById('customContentInput');
+	const lessonPayload = ContentRuntime.buildLessonPayload({
+		contentMode,
+		typingContentSets,
+		contentSetSelect,
+		typingTrainingSelect,
+		sanitizeText,
+		buildLinesFromText,
+		findTypingTrainingRowById,
+		buildTrainingLessonText,
+		customContentInput
+	});
 
-		lyricsText = set.lines.join('\n');
-		activeContentTitle = set.title;
-		speakPunctuation = set.type === 'code';
+	if (lessonPayload.validationError === 'customContentEmpty') {
+		showCustomContentError();
+		return;
 	}
 
-	if (contentMode === 'set') {
-		const set = getSelectedContentSet();
-		if (!set) {
-			return;
-		}
-
-		lyricsText = set.lines.join('\n');
-		activeContentTitle = set.title;
-		speakPunctuation = set.type === 'code';
+	if (lessonPayload.error) {
+		speak(lessonPayload.error);
+		return;
 	}
 
-	if (contentMode === 'custom') {
-		const input = document.getElementById('customContentInput');
-		const rawText = input ? input.value : '';
-
-		const cleanText = sanitizeText(rawText);
-		const customLines = buildLinesFromText(cleanText);
-
-		if (customLines.length === 0) {
-			showCustomContentError();
-			return;
-		}
-
-		lyricsText = customLines.join('\n');
-		activeContentTitle = 'Custom Typing';
-		speakPunctuation = false;
+	if (!lessonPayload.lyricsText) {
+		return;
 	}
 
-	if (contentMode === 'training') {
-		const rowId = typingTrainingSelect ? typingTrainingSelect.value : '';
-		const found = findTypingTrainingRowById(rowId);
-
-		if (!found || !found.row) {
-			speak('No typing training set is selected.');
-			return;
-		}
-
-		lyricsText = buildTrainingLessonText(found.row);
-		activeContentTitle = `${found.layout.name} - ${found.row.name}`;
-		speakPunctuation = true;
-	}
+	lyricsText = lessonPayload.lyricsText;
+	activeContentTitle = lessonPayload.activeContentTitle;
+	speakPunctuation = lessonPayload.speakPunctuation;
 
 	gameState = 'PLAYING';
 	setScreenState('PLAYING');
@@ -1207,13 +1025,32 @@ if (resetSpeechButton) {
 
 function initTypingSettings() {
 	const punctToggle = document.getElementById('punctToggle');
+	const voiceSelect = document.getElementById('voiceSelect');
+	const voiceRateNumber = document.getElementById('voiceRateNumber');
+	const voiceVolumeNumber = document.getElementById('voiceVolumeNumber');
+	const playVoiceSampleBtn = document.getElementById('playVoiceSample');
+	const soundEffectsToggle = document.getElementById('soundEffectsToggle');
+	const contentModeOriginal = document.getElementById('contentModeOriginal');
+	const contentModeSet = document.getElementById('contentModeSet');
+	const contentModeTraining = document.getElementById('contentModeTraining');
+	const contentModeCustom = document.getElementById('contentModeCustom');
+	const typingModeGuided = document.getElementById('typingModeGuided');
+	const typingModeWord = document.getElementById('typingModeWord');
+	const typingModeSentence = document.getElementById('typingModeSentence');
+	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
+	const customContentInput = document.getElementById('customContentInput');
+	const container = document.getElementById('lyrics-display');
+	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
+	const sentenceSpeechCharacters = document.getElementById('sentenceSpeechChars');
+	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
+	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
+
 	if (punctToggle) {
 		punctToggle.addEventListener('change', () => {
 			speakAllPunctuation = punctToggle.checked;
 			saveAppSetting(localStorage, 'speakAllPunctuation', speakAllPunctuation);
 		});
 	}
-	const voiceSelect = document.getElementById('voiceSelect');
 
 	if (voiceSelect) {
 		voiceSelect.addEventListener('change', () => {
@@ -1222,60 +1059,44 @@ function initTypingSettings() {
 		});
 	}
 
-const voiceRateNumber = document.getElementById('voiceRateNumber');
-const voiceVolumeNumber = document.getElementById('voiceVolumeNumber');
-const playVoiceSampleBtn = document.getElementById('playVoiceSample');
+	if (voiceRateNumber) {
+		voiceRateNumber.value = selectedVoiceRatePercent;
 
-if (voiceRateNumber) {
-	voiceRateNumber.value = selectedVoiceRatePercent;
+		voiceRateNumber.addEventListener('input', () => {
+			let value = parseInt(voiceRateNumber.value, 10);
 
-	voiceRateNumber.addEventListener('input', () => {
-		let value = parseInt(voiceRateNumber.value, 10);
+			if (isNaN(value)) {
+				return;
+			}
 
-		if (isNaN(value)) {
-			return;
-		}
+			value = Math.max(0, Math.min(100, value));
+			selectedVoiceRatePercent = value;
+			saveAppSetting(localStorage, 'selectedVoiceRatePercent', selectedVoiceRatePercent);
+		});
+	}
 
-		value = Math.max(0, Math.min(100, value));
-		selectedVoiceRatePercent = value;
+	if (voiceVolumeNumber) {
+		voiceVolumeNumber.value = selectedVoiceVolumePercent;
 
-		saveAppSetting(
-			localStorage,
-			'selectedVoiceRatePercent',
-			selectedVoiceRatePercent
-		);
-	});
-}
+		voiceVolumeNumber.addEventListener('input', () => {
+			let value = parseInt(voiceVolumeNumber.value, 10);
 
-if (voiceVolumeNumber) {
-	voiceVolumeNumber.value = selectedVoiceVolumePercent;
+			if (isNaN(value)) {
+				return;
+			}
 
-	voiceVolumeNumber.addEventListener('input', () => {
-		let value = parseInt(voiceVolumeNumber.value, 10);
+			value = Math.max(0, Math.min(100, value));
+			selectedVoiceVolumePercent = value;
+			saveAppSetting(localStorage, 'selectedVoiceVolumePercent', selectedVoiceVolumePercent);
+		});
+	}
 
-		if (isNaN(value)) {
-			return;
-		}
-
-		value = Math.max(0, Math.min(100, value));
-		selectedVoiceVolumePercent = value;
-
-		saveAppSetting(
-			localStorage,
-			'selectedVoiceVolumePercent',
-			selectedVoiceVolumePercent
-		);
-	});
-}
-
-if (playVoiceSampleBtn) {
-	playVoiceSampleBtn.addEventListener('click', () => {
-		resetSpeakQueue();
-		speak('Welcome to Roll With It Typing!');
-	});
-}
-
-	const soundEffectsToggle = document.getElementById('soundEffectsToggle');
+	if (playVoiceSampleBtn) {
+		playVoiceSampleBtn.addEventListener('click', () => {
+			resetSpeakQueue();
+			speak('Welcome to Roll With It Typing!');
+		});
+	}
 
 	if (soundEffectsToggle) {
 		soundEffectsToggle.checked = soundEffectsEnabled;
@@ -1286,124 +1107,57 @@ if (playVoiceSampleBtn) {
 		});
 	}
 
-	const contentModeOriginal = document.getElementById('contentModeOriginal');
-	const contentModeSet = document.getElementById('contentModeSet');
-	const contentModeTraining = document.getElementById('contentModeTraining');
-	const contentModeCustom = document.getElementById('contentModeCustom');
+	const syncSentenceSpeechMode = () => {
+		syncSentenceSpeechModeFromUI({
+			sentenceSpeechCharacters,
+			sentenceSpeechWords,
+			sentenceSpeechBoth,
+			setSentenceSpeechMode: (value) => {
+				sentenceSpeechMode = value;
+			},
+			saveSetting: (key, value) => {
+				saveAppSetting(localStorage, key, value);
+			}
+		});
+	};
 
-	const contentSetFieldset = document.getElementById('contentSetFieldset');
-	const customContentFieldset = document.getElementById('customContentFieldset');
-	const typingTrainingFieldset = document.getElementById('typingTrainingFieldset');
-
-	const typingModeGuided = document.getElementById('typingModeGuided');
-	const typingModeWord = document.getElementById('typingModeWord');
-	const typingModeSentence = document.getElementById('typingModeSentence');
-	const sentenceSpeechOptions = document.getElementById('sentenceSpeechOptions');
-
-	const customContentInput = document.getElementById('customContentInput');
-	const container = document.getElementById('lyrics-display');
-
-	const sentenceSpeechErrors = document.getElementById('sentenceSpeechErrors');
-	const sentenceSpeechCharacters = document.getElementById('sentenceSpeechChars');
-	const sentenceSpeechWords = document.getElementById('sentenceSpeechWords');
-	const sentenceSpeechBoth = document.getElementById('sentenceSpeechBoth');
-
-	function syncSentenceSpeechModeFromUI() {
-		if (sentenceSpeechCharacters?.checked) {
-			sentenceSpeechMode = 'characters';
-			saveAppSetting(localStorage, 'sentenceSpeechMode', sentenceSpeechMode);
-			return;
-		}
-		if (sentenceSpeechWords?.checked) {
-			sentenceSpeechMode = 'words';
-			saveAppSetting(localStorage, 'sentenceSpeechMode', sentenceSpeechMode);
-			return;
-		}
-		if (sentenceSpeechBoth?.checked) {
-			sentenceSpeechMode = 'both';
-			saveAppSetting(localStorage, 'sentenceSpeechMode', sentenceSpeechMode);
-			return;
-		}
-		sentenceSpeechMode = 'errors';
-		saveAppSetting(localStorage, 'sentenceSpeechMode', sentenceSpeechMode);
-	}
-
-	sentenceSpeechErrors?.addEventListener('change', syncSentenceSpeechModeFromUI);
-	sentenceSpeechCharacters?.addEventListener('change', syncSentenceSpeechModeFromUI);
-	sentenceSpeechWords?.addEventListener('change', syncSentenceSpeechModeFromUI);
-	sentenceSpeechBoth?.addEventListener('change', syncSentenceSpeechModeFromUI);
+	sentenceSpeechErrors?.addEventListener('change', syncSentenceSpeechMode);
+	sentenceSpeechCharacters?.addEventListener('change', syncSentenceSpeechMode);
+	sentenceSpeechWords?.addEventListener('change', syncSentenceSpeechMode);
+	sentenceSpeechBoth?.addEventListener('change', syncSentenceSpeechMode);
 
 	populateContentSetSelect();
-
-	if (contentSetSelect && selectedContentSetId) {
-		contentSetSelect.value = selectedContentSetId;
-	}
-
-	if (typingTrainingSelect && selectedTrainingRowId) {
-		typingTrainingSelect.value = selectedTrainingRowId;
-	}
-
-	if (typingModeGuided) {
-		typingModeGuided.checked = typingMode === 'guided';
-	}
-
-	if (typingModeWord) {
-		typingModeWord.checked = typingMode === 'word';
-	}
-
-	if (typingModeSentence) {
-		typingModeSentence.checked = typingMode === 'sentence';
-	}
-
-	if (sentenceSpeechErrors) {
-		sentenceSpeechErrors.checked = sentenceSpeechMode === 'errors';
-	}
-
-	if (sentenceSpeechCharacters) {
-		sentenceSpeechCharacters.checked = sentenceSpeechMode === 'characters';
-	}
-
-	if (sentenceSpeechWords) {
-		sentenceSpeechWords.checked = sentenceSpeechMode === 'words';
-	}
-
-	if (sentenceSpeechBoth) {
-		sentenceSpeechBoth.checked = sentenceSpeechMode === 'both';
-	}
-
-	if (punctToggle) {
-		punctToggle.checked = speakAllPunctuation;
-	}
-
-	if (contentModeOriginal) {
-		contentModeOriginal.checked = contentMode === 'original';
-	}
-
-	if (contentModeSet) {
-		contentModeSet.checked = contentMode === 'set';
-	}
-
-	if (contentModeTraining) {
-		contentModeTraining.checked = contentMode === 'training';
-	}
-
-	if (contentModeCustom) {
-		contentModeCustom.checked = contentMode === 'custom';
-	}
+	applyPersistedSettingsToUI({
+		contentSetSelect,
+		selectedContentSetId,
+		typingTrainingSelect,
+		selectedTrainingRowId,
+		typingModeGuided,
+		typingModeWord,
+		typingModeSentence,
+		typingMode,
+		sentenceSpeechErrors,
+		sentenceSpeechCharacters,
+		sentenceSpeechWords,
+		sentenceSpeechBoth,
+		sentenceSpeechMode,
+		punctToggle,
+		speakAllPunctuation,
+		contentModeOriginal,
+		contentModeSet,
+		contentModeTraining,
+		contentModeCustom,
+		contentMode,
+		container,
+		sentenceSpeechOptions
+	});
 
 	if (typingModeGuided) {
 		typingModeGuided.addEventListener('change', () => {
 			if (typingModeGuided.checked) {
 				typingMode = 'guided';
 				saveAppSetting(localStorage, 'typingMode', typingMode);
-
-				if (container) {
-					container.removeAttribute('role');
-				}
-
-				if (sentenceSpeechOptions) {
-					sentenceSpeechOptions.disabled = true;
-				}
+				applyTypingModeUIState({ typingMode, container, sentenceSpeechOptions });
 			}
 		});
 	}
@@ -1413,14 +1167,7 @@ if (playVoiceSampleBtn) {
 			if (typingModeSentence.checked) {
 				typingMode = 'sentence';
 				saveAppSetting(localStorage, 'typingMode', typingMode);
-
-				if (container) {
-					container.setAttribute('role', 'text');
-				}
-
-				if (sentenceSpeechOptions) {
-					sentenceSpeechOptions.disabled = false;
-				}
+				applyTypingModeUIState({ typingMode, container, sentenceSpeechOptions });
 			}
 		});
 	}
@@ -1430,14 +1177,7 @@ if (playVoiceSampleBtn) {
 			if (typingModeWord.checked) {
 				typingMode = 'word';
 				saveAppSetting(localStorage, 'typingMode', typingMode);
-
-				if (container) {
-					container.removeAttribute('role');
-				}
-
-				if (sentenceSpeechOptions) {
-					sentenceSpeechOptions.disabled = true;
-				}
+				applyTypingModeUIState({ typingMode, container, sentenceSpeechOptions });
 			}
 		});
 	}
@@ -1447,8 +1187,12 @@ if (playVoiceSampleBtn) {
 			if (contentModeOriginal.checked) {
 				contentMode = 'original';
 				saveAppSetting(localStorage, 'contentMode', contentMode);
-				contentSetFieldset.disabled = true;
-				customContentFieldset.disabled = true;
+				updateContentModeUIFromRadios({
+					contentModeRadios,
+					contentSetFieldset,
+					customContentFieldset,
+					typingTrainingFieldset
+				});
 			}
 		});
 	}
@@ -1458,8 +1202,12 @@ if (playVoiceSampleBtn) {
 			if (contentModeSet.checked) {
 				contentMode = 'set';
 				saveAppSetting(localStorage, 'contentMode', contentMode);
-				contentSetFieldset.disabled = false;
-				customContentFieldset.disabled = true;
+				updateContentModeUIFromRadios({
+					contentModeRadios,
+					contentSetFieldset,
+					customContentFieldset,
+					typingTrainingFieldset
+				});
 			}
 		});
 	}
@@ -1469,11 +1217,12 @@ if (playVoiceSampleBtn) {
 			if (contentModeTraining.checked) {
 				contentMode = 'training';
 				saveAppSetting(localStorage, 'contentMode', contentMode);
-				contentSetFieldset.disabled = true;
-				customContentFieldset.disabled = true;
-				if (typingTrainingFieldset) {
-					typingTrainingFieldset.disabled = false;
-				}
+				updateContentModeUIFromRadios({
+					contentModeRadios,
+					contentSetFieldset,
+					customContentFieldset,
+					typingTrainingFieldset
+				});
 			}
 		});
 	}
@@ -1483,8 +1232,12 @@ if (playVoiceSampleBtn) {
 			if (contentModeCustom.checked) {
 				contentMode = 'custom';
 				saveAppSetting(localStorage, 'contentMode', contentMode);
-				contentSetFieldset.disabled = true;
-				customContentFieldset.disabled = false;
+				updateContentModeUIFromRadios({
+					contentModeRadios,
+					contentSetFieldset,
+					customContentFieldset,
+					typingTrainingFieldset
+				});
 			}
 		});
 	}
@@ -1510,70 +1263,14 @@ if (playVoiceSampleBtn) {
 		});
 	}
 
-	if (contentModeSet && contentModeSet.checked) {
-		contentMode = 'set';
-		contentSetFieldset.disabled = false;
-		customContentFieldset.disabled = true;
-	}
-
-	if (contentModeOriginal && contentModeOriginal.checked) {
-		contentMode = 'original';
-		contentSetFieldset.disabled = true;
-		customContentFieldset.disabled = true;
-	}
-
-	if (contentModeTraining && contentModeTraining.checked) {
-		contentMode = 'training';
-		contentSetFieldset.disabled = true;
-		customContentFieldset.disabled = true;
-		if (typingTrainingFieldset) {
-			typingTrainingFieldset.disabled = false;
-		}
-	}
-
-	if (contentModeCustom && contentModeCustom.checked) {
-		contentMode = 'custom';
-		contentSetFieldset.disabled = true;
-		customContentFieldset.disabled = false;
-	}
-
-	if (typingModeSentence && typingModeSentence.checked) {
-		typingMode = 'sentence';
-
-		if (container) {
-			container.setAttribute('role', 'text');
-		}
-
-		if (sentenceSpeechOptions) {
-			sentenceSpeechOptions.disabled = false;
-		}
-	}
-
-	if (typingModeGuided && typingModeGuided.checked) {
-		typingMode = 'guided';
-
-		if (container) {
-			container.removeAttribute('role');
-		}
-
-		if (sentenceSpeechOptions) {
-			sentenceSpeechOptions.disabled = true;
-		}
-	}
-
-	if (typingModeWord && typingModeWord.checked) {
-		typingMode = 'word';
-
-		if (container) {
-			container.removeAttribute('role');
-		}
-
-		if (sentenceSpeechOptions) {
-			sentenceSpeechOptions.disabled = true;
-		}
-	}
-
-	syncSentenceSpeechModeFromUI();
+	updateContentModeUIFromRadios({
+		contentModeRadios,
+		contentSetFieldset,
+		customContentFieldset,
+		typingTrainingFieldset
+	});
+	applyTypingModeUIState({ typingMode, container, sentenceSpeechOptions });
+	syncSentenceSpeechMode();
 }
 
 function init() {
@@ -1581,7 +1278,6 @@ function init() {
 	window.speechSynthesis.onvoiceschanged = loadVoicesOnce;
 
 	populateTypingTrainingSelect();
-	updateContentModeUIFromRadios();
 
 	initTypingSettings();
 	initInputHooks();
