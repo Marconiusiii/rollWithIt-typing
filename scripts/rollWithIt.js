@@ -952,6 +952,13 @@ async function speakCurrentWord() {
 	await speak(word);
 }
 
+function pauseTypingTimer() {
+	if (typingStartTime !== null) {
+		totalTypingTime += Date.now() - typingStartTime;
+		typingStartTime = null;
+	}
+}
+
 async function promptWord() {
 	const line = lines[currentLineIndex];
 	if (!line) {
@@ -959,6 +966,7 @@ async function promptWord() {
 	}
 
 	if (isAtWordBoundary(line, currentCharIndex)) {
+		pauseTypingTimer();
 		await speakCurrentWord();
 	}
 }
