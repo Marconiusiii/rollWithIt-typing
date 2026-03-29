@@ -5,6 +5,9 @@ import * as TextProcessing from './core/textProcessing.mjs';
 import * as WordMode from './core/wordMode.mjs';
 import * as Training from './core/training.mjs';
 import { loadAppSettings, saveAppSetting } from './core/settings.mjs';
+import * as SpeechRuntime from './core/speechRuntime.mjs';
+import * as SfxRuntime from './core/sfxRuntime.mjs';
+import * as ModeRuntime from './core/modeRuntime.mjs';
 
 const typingContentSets = globalThis.typingContentSets || [];
 const typingTrainingSets = globalThis.typingTrainingSets || {};
@@ -406,125 +409,73 @@ function setScreenState(targetState) {
 }
 
 function loadVoicesOnce() {
-	if (!window.speechSynthesis) {
-		return;
-	}
-
-	const voices = window.speechSynthesis.getVoices();
-	if (voices.length > 0) {
-		cachedVoices = voices;
-		populateVoiceSelect();
-	}
+	SpeechRuntime.loadVoicesOnce({
+		speechSynthesis: window.speechSynthesis,
+		setCachedVoices: (voices) => {
+			cachedVoices = voices;
+		},
+		populateVoiceSelect
+	});
 }
 
 function queueCharSpeech(char) {
-	charSpeechBuffer += char;
-
-	if (charSpeechFramePending) {
-		return;
-	}
-
-	charSpeechFramePending = true;
-
-	requestAnimationFrame(() => {
-		charSpeechFramePending = false;
-
-		if (!charSpeechBuffer) {
-			return;
-		}
-
-		const toSpeak = charSpeechBuffer;
-		charSpeechBuffer = '';
-
-		queueSpeak(toSpeak);
+	SpeechRuntime.queueCharSpeech({
+		char,
+		getCharSpeechBuffer: () => charSpeechBuffer,
+		setCharSpeechBuffer: (value) => {
+			charSpeechBuffer = value;
+		},
+		getCharSpeechFramePending: () => charSpeechFramePending,
+		setCharSpeechFramePending: (value) => {
+			charSpeechFramePending = value;
+		},
+		queueSpeak
 	});
 }
 function hardResetSpeechSynthesis() {
-	if (!window.speechSynthesis) {
-		return;
-	}
-
-	// Cancel anything currently happening
-	try {
-		window.speechSynthesis.cancel();
-	} catch (e) {}
-
-	// Clear internal JS state
-	isSpeaking = false;
-	speakChain = Promise.resolve();
-
-	// Chrome-specific kick: enqueue and immediately cancel
-	// This often reinitializes the engine without restart
-	try {
-		const kick = new SpeechSynthesisUtterance(' ');
-		kick.volume = 0;
-		window.speechSynthesis.speak(kick);
-		window.speechSynthesis.cancel();
-	} catch (e) {}
-
-	// Optional audible confirmation for users
-	// (only if speech is actually alive)
-	setTimeout(() => {
-		try {
-			const confirm = new SpeechSynthesisUtterance('Speech reset.');
-			confirm.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
-			confirm.volume = getSpeechVolumeFromPercent(selectedVoiceVolumePercent);
-
-			const voice = selectedVoiceName
-				? resolveCurrentVoiceByName(selectedVoiceName)
-				: null;
-
-			if (voice) {
-				confirm.voice = voice;
-			}
-
-			window.speechSynthesis.speak(confirm);
-		} catch (e) {}
-	}, 100);
+	SpeechRuntime.hardResetSpeechSynthesis({
+		speechSynthesis: window.speechSynthesis,
+		setIsSpeaking: (value) => {
+			isSpeaking = value;
+		},
+		resetSpeakChain: () => {
+			speakChain = Promise.resolve();
+		},
+		getSpeechRateFromPercent,
+		getSpeechVolumeFromPercent,
+		selectedVoiceRatePercent,
+		selectedVoiceVolumePercent,
+		selectedVoiceName,
+		resolveCurrentVoiceByName
+	});
 }
 
 function speakCharCutover(spokenChar) {
-	cancelSpeechIfSpeaking();
-	resetSpeakQueue();
-	speak(spokenChar);
+	SpeechRuntime.speakCharCutover({
+		spokenChar,
+		cancelSpeechIfSpeaking,
+		resetSpeakQueue,
+		speak
+	});
 }
 
 function speak(text) {
-	return new Promise((resolve) => {
-		isSpeaking = true;
-
-		let textToSpeak = text;
-
-		if (speakAllPunctuation || speakPunctuation) {
-			textToSpeak = expandPunctuationForSpeech(textToSpeak);
-		}
-
-		const utterance = new SpeechSynthesisUtterance(textToSpeak);
-utterance.rate = getSpeechRateFromPercent(selectedVoiceRatePercent);
-utterance.volume = getSpeechVolumeFromPercent(selectedVoiceVolumePercent);
-
-let voice = null;
-
-if (selectedVoiceName) {
-	voice = resolveCurrentVoiceByName(selectedVoiceName);
-}
-
-if (voice) {
-	utterance.voice = voice;
-}
-// If voice is null, do NOT set utterance.voice at all
-// Chrome will safely fall back to system default
-		utterance.onend = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		utterance.onerror = () => {
-			isSpeaking = false;
-			resolve();
-		};
-
-		window.speechSynthesis.speak(utterance);
+	return SpeechRuntime.speak({
+		speechSynthesis: window.speechSynthesis,
+		text,
+		setIsSpeaking: (value) => {
+			isSpeaking = value;
+		},
+		speakAllPunctuation,
+		speakPunctuation,
+		expandPunctuationForSpeech,
+		getSpeechRateFromPercent,
+		getSpeechVolumeFromPercent,
+		selectedVoiceRatePercent,
+		selectedVoiceVolumePercent,
+		selectedVoiceName,
+		resolveCurrentVoiceByName,
+		cachedVoices
 	});
 }
 
@@ -542,338 +493,65 @@ function speakChar(char) {
 }
 
 function speakRemainingLine() {
-	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	const remaining = getRemainingLineText(line, currentCharIndex);
-	if (!remaining.trim()) {
-		return;
-	}
-
-	cancelSpeechIfSpeaking();
-	resetSpeakQueue();
-	speak(remaining);
+	SpeechRuntime.speakRemainingLine({
+		lines,
+		currentLineIndex,
+		currentCharIndex,
+		getRemainingLineText,
+		cancelSpeechIfSpeaking,
+		resetSpeakQueue,
+		speak
+	});
 }
 
 function speakExpectedWord() {
-	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	const word = getExpectedWord(line, currentCharIndex);
-	if (!word) {
-		return;
-	}
-
-	cancelSpeechIfSpeaking();
-	resetSpeakQueue();
-	speak(word);
+	SpeechRuntime.speakExpectedWord({
+		lines,
+		currentLineIndex,
+		currentCharIndex,
+		getExpectedWord,
+		cancelSpeechIfSpeaking,
+		resetSpeakQueue,
+		speak
+	});
 }
 
 function replayExpectedChar() {
-	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	const expected = line[currentCharIndex];
-	if (typeof expected !== 'string') {
-		return;
-	}
-
-	speakCharCutover(`${getSpokenChar(expected)} `);
+	SpeechRuntime.replayExpectedChar({
+		lines,
+		currentLineIndex,
+		currentCharIndex,
+		getSpokenChar,
+		speakCharCutover
+	});
 }
 
 function playTypewriterBell() {
-	if (!soundEffectsEnabled) {
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const now = audioCtx.currentTime;
-
-	const strikeOsc = audioCtx.createOscillator();
-	const bodyOsc = audioCtx.createOscillator();
-	const bassOsc = audioCtx.createOscillator();
-
-	const strikeGain = audioCtx.createGain();
-	const bodyGain = audioCtx.createGain();
-	const bassGain = audioCtx.createGain();
-
-	strikeOsc.type = 'triangle';
-	bodyOsc.type = 'sine';
-	bassOsc.type = 'sine';
-
-	strikeOsc.frequency.setValueAtTime(1800, now);
-	bodyOsc.frequency.setValueAtTime(720, now);
-	bassOsc.frequency.setValueAtTime(160, now);
-
-	strikeOsc.detune.setValueAtTime(6, now);
-	bodyOsc.detune.setValueAtTime(-4, now);
-
-	strikeGain.gain.setValueAtTime(0, now);
-	strikeGain.gain.linearRampToValueAtTime(0.15, now + 0.005);
-	strikeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-
-	bodyGain.gain.setValueAtTime(0, now);
-	bodyGain.gain.linearRampToValueAtTime(0.22, now + 0.02);
-	bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
-
-	bassGain.gain.setValueAtTime(0, now);
-	bassGain.gain.linearRampToValueAtTime(0.12, now + 0.03);
-	bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-	strikeOsc.connect(strikeGain);
-	bodyOsc.connect(bodyGain);
-	bassOsc.connect(bassGain);
-
-	strikeGain.connect(audioCtx.destination);
-	bodyGain.connect(audioCtx.destination);
-	bassGain.connect(audioCtx.destination);
-
-	strikeOsc.start(now);
-	bodyOsc.start(now);
-	bassOsc.start(now);
-
-	strikeOsc.stop(now + 0.3);
-	bodyOsc.stop(now + 1.0);
-	bassOsc.stop(now + 0.6);
+	SfxRuntime.playTypewriterBell({ audioCtx, soundEffectsEnabled });
 }
 
 function playIntroRickStinger() {
-	if (!soundEffectsEnabled) {
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const now = audioCtx.currentTime;
-	const tempo = 114;
-	const beat = 60 / tempo;
-	const sixteenth = beat / 4;
-
-	const introNotes = [
-		261.63,
-		349.23,
-		392.0,
-		523.25
-	];
-
-	introNotes.forEach((freq, index) => {
-		const startTime = now + index * sixteenth;
-		const osc = audioCtx.createOscillator();
-		const gain = audioCtx.createGain();
-
-		osc.type = index === introNotes.length - 1 ? 'sawtooth' : 'triangle';
-		osc.frequency.setValueAtTime(freq, startTime);
-
-		gain.gain.setValueAtTime(0, startTime);
-		gain.gain.linearRampToValueAtTime(0.12, startTime + 0.01);
-		gain.gain.exponentialRampToValueAtTime(0.001, startTime + sixteenth * 0.95);
-
-		osc.connect(gain);
-		gain.connect(audioCtx.destination);
-
-		osc.start(startTime);
-		osc.stop(startTime + sixteenth);
-	});
+	SfxRuntime.playIntroRickStinger({ audioCtx, soundEffectsEnabled });
 }
 
 function playFinalRickChordProgression() {
-	if (!soundEffectsEnabled) {
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const now = audioCtx.currentTime;
-
-	const tempo = 114;
-	const beat = 60 / tempo;
-	const sixteenth = beat / 4;
-
-	const pickupNotes = [
-		349.23,	// F4
-		392.00,	// G4
-		349.23,	// F4
-		261.63	// C4
-	];
-
-	const bassNotes = [
-		174.61,	// F3
-		196.00,	// G3
-		174.61,	// F3
-		130.81	// C3
-	];
-
-	pickupNotes.forEach((freq, index) => {
-		const startTime = now + index * sixteenth;
-
-		const leadOsc = audioCtx.createOscillator();
-		const leadGain = audioCtx.createGain();
-
-		const bassOsc = audioCtx.createOscillator();
-		const bassGain = audioCtx.createGain();
-
-		leadOsc.type = 'sawtooth';
-		bassOsc.type = 'triangle';
-
-		if (index === 0) {
-			leadOsc.frequency.setValueAtTime(freq * 0.985, startTime);
-			leadOsc.frequency.linearRampToValueAtTime(freq, startTime + 0.03);
-		} else {
-			leadOsc.frequency.setValueAtTime(freq, startTime);
-		}
-
-		bassOsc.frequency.setValueAtTime(bassNotes[index], startTime);
-
-		const leadPeak = index === 0 ? 0.1 : 0.07;
-
-		leadGain.gain.setValueAtTime(0, startTime);
-		leadGain.gain.linearRampToValueAtTime(leadPeak, startTime + 0.008);
-		leadGain.gain.exponentialRampToValueAtTime(0.001, startTime + sixteenth * 0.85);
-
-		bassGain.gain.setValueAtTime(0, startTime);
-		bassGain.gain.linearRampToValueAtTime(0.14, startTime + 0.008);
-		bassGain.gain.exponentialRampToValueAtTime(0.001, startTime + sixteenth * 0.6);
-
-		leadOsc.connect(leadGain);
-		bassOsc.connect(bassGain);
-
-		leadGain.connect(audioCtx.destination);
-		bassGain.connect(audioCtx.destination);
-
-		leadOsc.start(startTime);
-		bassOsc.start(startTime);
-
-		leadOsc.stop(startTime + sixteenth);
-		bassOsc.stop(startTime + sixteenth);
-	});
-
-	const finalStart = now + pickupNotes.length * sixteenth;
-
-	const finalLeadOsc = audioCtx.createOscillator();
-	const finalLeadGain = audioCtx.createGain();
-
-	const finalBassOsc = audioCtx.createOscillator();
-	const finalBassGain = audioCtx.createGain();
-
-	const vibratoOsc = audioCtx.createOscillator();
-	const vibratoGain = audioCtx.createGain();
-
-	finalLeadOsc.type = 'sawtooth';
-	finalBassOsc.type = 'triangle';
-
-	finalLeadOsc.frequency.setValueAtTime(523.25, finalStart);	// C5
-	finalBassOsc.frequency.setValueAtTime(130.81, finalStart);	// C3
-
-	vibratoOsc.type = 'sine';
-	vibratoOsc.frequency.setValueAtTime(6.2, finalStart);
-	vibratoGain.gain.setValueAtTime(16, finalStart);
-
-	vibratoOsc.connect(vibratoGain);
-	vibratoGain.connect(finalLeadOsc.frequency);
-
-	finalLeadGain.gain.setValueAtTime(0, finalStart);
-	finalLeadGain.gain.linearRampToValueAtTime(0.15, finalStart + 0.03);
-	finalLeadGain.gain.exponentialRampToValueAtTime(0.001, finalStart + beat * 2.2);
-
-	finalBassGain.gain.setValueAtTime(0, finalStart);
-	finalBassGain.gain.linearRampToValueAtTime(0.2, finalStart + 0.03);
-	finalBassGain.gain.exponentialRampToValueAtTime(0.001, finalStart + beat * 2.2);
-
-	finalLeadOsc.connect(finalLeadGain);
-	finalBassOsc.connect(finalBassGain);
-
-	finalLeadGain.connect(audioCtx.destination);
-	finalBassGain.connect(audioCtx.destination);
-
-	finalLeadOsc.start(finalStart);
-	finalBassOsc.start(finalStart);
-	vibratoOsc.start(finalStart);
-
-	finalLeadOsc.stop(finalStart + beat * 2.3);
-	finalBassOsc.stop(finalStart + beat * 2.3);
-	vibratoOsc.stop(finalStart + beat * 2.3);
+	SfxRuntime.playFinalRickChordProgression({ audioCtx, soundEffectsEnabled });
 }
 
 function playBeep() {
-	if (!soundEffectsEnabled) {
-		return;
-	}
-
-	if (audioCtx.state === 'suspended') {
-		audioCtx.resume();
-	}
-
-	const osc = audioCtx.createOscillator();
-	const gain = audioCtx.createGain();
-
-	osc.connect(gain);
-	gain.connect(audioCtx.destination);
-
-	osc.frequency.value = 220;
-	gain.gain.value = 0.05;
-
-	osc.start();
-	osc.stop(audioCtx.currentTime + 0.1);
+	SfxRuntime.playBeep({ audioCtx, soundEffectsEnabled });
 }
 
 function render() {
 	const container = document.getElementById('lyrics-display');
-	container.innerHTML = '';
-
 	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	if (typingMode === 'sentence') {
-		container.textContent = line;
-		return;
-	}
-
-	if (typingMode === 'word') {
-		const revealUntil = WordMode.getWordRevealEnd(line, currentCharIndex);
-
-		for (let i = 0; i < revealUntil; i++) {
-			const span = document.createElement('span');
-			span.textContent = line[i] === ' ' ? '\u00A0' : line[i];
-
-			if (i < currentCharIndex) {
-				span.className = 'correct';
-			} else if (i === currentCharIndex) {
-				span.className = line[i] === ' ' ? 'current-space' : 'current';
-			}
-
-			container.appendChild(span);
-		}
-
-		return;
-	}
-
-	for (let i = 0; i < line.length; i++) {
-		const span = document.createElement('span');
-		span.textContent = line[i] === ' ' ? '\u00A0' : line[i];
-
-		if (i < currentCharIndex) {
-			span.className = 'correct';
-		} else if (i === currentCharIndex) {
-			span.className = 'current';
-		}
-
-		container.appendChild(span);
-	}
+	ModeRuntime.renderTypingDisplay({
+		container,
+		line,
+		typingMode,
+		currentCharIndex,
+		getWordRevealEnd: WordMode.getWordRevealEnd
+	});
 }
 
 function getCurrentWordRange(line, charIndex) {
@@ -890,17 +568,13 @@ function isAtWordBoundary(line, charIndex) {
 
 async function speakCurrentWord() {
 	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	const word = getCurrentWord(line, currentCharIndex);
-	if (!word) {
-		return;
-	}
-
-	resetSpeakQueue();
-	await speak(word);
+	await ModeRuntime.speakCurrentWordPrompt({
+		line,
+		currentCharIndex,
+		getCurrentWord,
+		resetSpeakQueue,
+		speak
+	});
 }
 
 function pauseTypingTimer() {
@@ -910,14 +584,13 @@ function pauseTypingTimer() {
 
 async function promptWord() {
 	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	if (isAtWordBoundary(line, currentCharIndex)) {
-		pauseTypingTimer();
-		await speakCurrentWord();
-	}
+	await ModeRuntime.promptWord({
+		line,
+		currentCharIndex,
+		isAtWordBoundary,
+		pauseTypingTimer,
+		speakCurrentWordPrompt: speakCurrentWord
+	});
 }
 
 function isWordEnd(line, index) {
@@ -934,32 +607,27 @@ function getLastWord(line, endIndex) {
 
 async function speakLineOnce() {
 	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-	cancelSpeechIfSpeaking();
-	resetSpeakQueue();
-	await waitForSpeechReset();
-	await speak(line);
+	await ModeRuntime.speakLinePrompt({
+		line,
+		cancelSpeechIfSpeaking,
+		resetSpeakQueue,
+		waitForSpeechReset,
+		speak
+	});
 }
 
 async function promptChar() {
 	const line = lines[currentLineIndex];
-	if (!line) {
-		return;
-	}
-
-	const char = line[currentCharIndex];
-
-	resetSpeakQueue();
-
-	let spoken = getSpokenChar(char);
-
-	if (speakAllPunctuation || speakPunctuation) {
-		spoken = expandPunctuationForSpeech(spoken);
-	}
-
-	await speak(spoken);
+	await ModeRuntime.promptCharacter({
+		line,
+		currentCharIndex,
+		resetSpeakQueue,
+		getSpokenChar,
+		speak,
+		speakAllPunctuation,
+		speakPunctuation,
+		expandPunctuationForSpeech
+	});
 }
 
 function sanitizeText(rawText) {
