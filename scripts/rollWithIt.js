@@ -79,6 +79,7 @@ let lastErrorCharIndexSpoken = null;
 let totalKeystrokes = 0;
 let errors = 0;
 let errorKeys = new Set();
+let errorWords = new Set();
 
 let typingStartTime = null;
 let totalTypingTime = 0;
@@ -588,6 +589,7 @@ async function startTypingLesson() {
 	totalKeystrokes = 0;
 	errors = 0;
 	errorKeys.clear();
+	errorWords.clear();
 
 	typingStartTime = null;
 	totalTypingTime = 0;
@@ -646,6 +648,7 @@ async function handleCharacterInput(char) {
 		},
 		errors,
 		errorKeys,
+		errorWords,
 		playBeep,
 		lastErrorCharIndexSpoken,
 		setLastErrorCharIndexSpoken: (value) => {
@@ -707,12 +710,14 @@ function finishGame() {
 	setScreenState({ document, targetState: 'RESULTS' });
 	applyResultsScreen({
 		document,
+		typingMode,
 		contentMode,
 		activeContentTitle,
 		totalTypingTime,
 		totalKeystrokes,
 		errors,
 		errorKeys,
+		errorWords,
 		errorKeysToString,
 		computeCorrectKeystrokes: Metrics.computeCorrectKeystrokes,
 		computeWpm: Metrics.computeWpm,

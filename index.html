@@ -20,10 +20,13 @@
 By Chancey Fleet and Marco Salsiccia.
 </p>
 <details class="game-settings">
-<summary>Mar 28, 2026 Update Log</summary>
+<summary>Mar 29, 2026 Update Log</summary>
 <ul>
 <li>Added a new Word typing mode. Now instead of characters or full sentences, you are now prompted with the line content word by word. Just type the word and press space to move onto the next word of the line.</li>
 <li>Added a Speech Volume control to the Typing Settings as well to go along with the speech rate slider, just in case the voice is too loud.</li>
+<li>Added new punctuation verbosity mode, in case you miss commas, periods, or want to delve into the coding sets.</li>
+<li>WPM now calculated based on the input mode and is much more accurate.</li>
+<li>Lots of optimization re-work under the hood.</li>
 </ul>
 
 </details>
@@ -631,6 +634,11 @@ End Lesson
 <div class="metric" role="text">
 <p class="metric-label" id="desertLabel">Practice these Keys so they don't desert you again: </p>
 <p id="desert-val" class="metric-value"></p>
+</div>
+
+<div class="metric hidden" role="text" id="letdownWordsMetric">
+<p class="metric-label" id="letdownWordsLabel">Words that let you down: </p>
+<p id="letdown-words-val" class="metric-value"></p>
 </div>
 
 </div>

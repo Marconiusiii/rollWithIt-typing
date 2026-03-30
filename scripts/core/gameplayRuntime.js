@@ -1,3 +1,26 @@
+function getErroredWord(line, charIndex) {
+	if (!line || charIndex < 0 || charIndex >= line.length) {
+		return '';
+	}
+
+	if (line[charIndex] === ' ') {
+		return '';
+	}
+
+	let start = charIndex;
+	let end = charIndex;
+
+	while (start > 0 && line[start - 1] !== ' ') {
+		start--;
+	}
+
+	while (end < line.length && line[end] !== ' ') {
+		end++;
+	}
+
+	return line.slice(start, end).trim();
+}
+
 export async function handleCharacterInput({
 	char,
 	gameState,
@@ -12,6 +35,7 @@ export async function handleCharacterInput({
 	setErrors,
 	errors,
 	errorKeys,
+	errorWords,
 	playBeep,
 	lastErrorCharIndexSpoken,
 	setLastErrorCharIndexSpoken,
@@ -63,6 +87,14 @@ export async function handleCharacterInput({
 	if (!matches) {
 		setErrors(errors + 1);
 		errorKeys.add(expected);
+
+		if (typingMode === 'word' || typingMode === 'sentence') {
+			const erroredWord = getErroredWord(line, currentCharIndex);
+			if (erroredWord) {
+				errorWords.add(erroredWord);
+			}
+		}
+
 		playBeep();
 
 		if (lastErrorCharIndexSpoken !== currentCharIndex) {

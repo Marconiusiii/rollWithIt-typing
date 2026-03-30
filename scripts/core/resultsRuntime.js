@@ -1,11 +1,13 @@
 export function applyResultsScreen({
 	document,
+	typingMode,
 	contentMode,
 	activeContentTitle,
 	totalTypingTime,
 	totalKeystrokes,
 	errors,
 	errorKeys,
+	errorWords,
 	errorKeysToString,
 	computeCorrectKeystrokes,
 	computeWpm,
@@ -42,6 +44,8 @@ export function applyResultsScreen({
 	const errVal = document.getElementById('err-val');
 	const desertLabel = document.getElementById('desertLabel');
 	const desertVal = document.getElementById('desert-val');
+	const letdownWordsMetric = document.getElementById('letdownWordsMetric');
+	const letdownWordsVal = document.getElementById('letdown-words-val');
 	const wpmNote = document.getElementById('wpmNote');
 
 	if (wpmVal) {
@@ -65,6 +69,22 @@ export function applyResultsScreen({
 		} else {
 			desertLabel.textContent = "Practice these keys so they don't desert you again: ";
 			desertVal.textContent = errorKeysToString();
+		}
+	}
+
+	if (letdownWordsMetric && letdownWordsVal) {
+		const shouldShowLetdownWords =
+			contentMode !== 'training' &&
+			(typingMode === 'word' || typingMode === 'sentence');
+
+		if (!shouldShowLetdownWords) {
+			letdownWordsMetric.classList.add('hidden');
+			letdownWordsVal.textContent = '';
+		} else {
+			letdownWordsMetric.classList.remove('hidden');
+			letdownWordsVal.textContent = errorWords.size > 0
+				? Array.from(errorWords).join(', ')
+				: 'None this time.';
 		}
 	}
 
