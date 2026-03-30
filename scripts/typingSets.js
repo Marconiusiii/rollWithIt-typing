@@ -306,6 +306,142 @@ const typingContentSets = [
 		]
 	},
 	{
+		id: 'coffee-and-tea',
+		title: 'Coffee and Tea',
+		difficulty: 'beginner',
+		lines: [
+			'The kettle started to sing from the stove.',
+			'Fresh coffee filled the room with warmth.',
+			'Tea leaves opened slowly in hot water.',
+			'A quiet morning begins with the first sip.',
+			'The mug stayed warm between both hands.',
+			'Steam rose gently into the cool air.',
+			'Sugar dissolved with one quick stir.',
+			'The cafe hummed with soft conversation.',
+			'A second cup felt like a good idea.',
+			'The last drop tasted just as good.'
+		]
+	},
+	{
+		id: 'workplace-writing',
+		title: 'Workplace Writing',
+		difficulty: 'intermediate',
+		lines: [
+			'I sent the update before the meeting began.',
+			'The agenda was short, clear, and useful.',
+			'We followed up with a summary by noon.',
+			'The draft needed a stronger opening paragraph.',
+			'Please review the notes and suggest any changes.',
+			'A clear subject line saves everyone time.',
+			'The deadline moved, so the schedule changed too.',
+			'We kept the message brief and easy to scan.',
+			'Good documentation prevents repeated confusion.',
+			'The final version was shared with the whole team.'
+		]
+	},
+	{
+		id: 'movies-and-tv',
+		title: 'Movies and TV',
+		difficulty: 'beginner',
+		lines: [
+			'The opening scene grabbed my attention fast.',
+			'The credits rolled over quiet music.',
+			'A good script gives every line a purpose.',
+			'The villain smiled before the lights went out.',
+			'We watched two episodes without noticing the time.',
+			'The ending surprised everyone in the room.',
+			'A favorite quote stayed with me all day.',
+			'The soundtrack made the scene feel bigger.',
+			'Popcorn disappeared before the second act.',
+			'We talked about the finale all night.'
+		]
+	},
+	{
+		id: 'weather-and-seasons',
+		title: 'Weather and Seasons',
+		difficulty: 'beginner',
+		lines: [
+			'Rain tapped steadily against the window.',
+			'The morning air felt cool and bright.',
+			'Clouds moved quickly across the sky.',
+			'Winter sunlight can still feel gentle.',
+			'Spring arrived with longer days and softer light.',
+			'Summer heat settled over the afternoon.',
+			'Leaves turned gold before falling to the ground.',
+			'Thunder rolled far away at dusk.',
+			'The forecast promised clear skies tomorrow.',
+			'A strong wind changed the whole day.'
+		]
+	},
+	{
+		id: 'libraries-and-books',
+		title: 'Libraries and Books',
+		difficulty: 'intermediate',
+		lines: [
+			'The library stayed quiet except for the turning of pages.',
+			'I returned two books and immediately borrowed three more.',
+			'A handwritten note marked the chapter I wanted to revisit.',
+			'The reference desk helped me find an older edition quickly.',
+			'Some stories feel different every time you read them.',
+			'A long introduction can still lead to a brilliant book.',
+			'The shelf looked ordinary until one title caught my eye.',
+			'I renewed the loan before the due date arrived.',
+			'Good reading light makes a long session much easier.',
+			'The final paragraph stayed with me after I closed the cover.'
+		]
+	},
+	{
+		id: 'daily-routine',
+		title: 'Daily Routine',
+		difficulty: 'intermediate',
+		lines: [
+			'I opened the blinds and let the morning light in.',
+			'Breakfast was simple, quick, and exactly what I needed.',
+			'I checked the calendar before planning the rest of the day.',
+			'A short walk helped clear my head before work began.',
+			'Laundry, dishes, and email all competed for attention.',
+			'I paused in the afternoon to stretch and drink water.',
+			'The evening felt calmer once everything was put away.',
+			'I reviewed tomorrow’s tasks before shutting the computer down.',
+			'A familiar routine makes busy days easier to manage.',
+			'By bedtime, the apartment was quiet again.'
+		]
+	},
+	{
+		id: 'technology',
+		title: 'Technology',
+		difficulty: 'advanced',
+		lines: [
+			'The update improved performance, but it also changed several familiar shortcuts.',
+			'I backed up the project before testing the new version on the main machine.',
+			'Notifications kept appearing until I finally changed the system settings.',
+			'The wireless connection dropped twice before the router settled down again.',
+			'A clear error message can save an hour of unnecessary troubleshooting.',
+			'The app remembered my preferences after I signed back in.',
+			'Accessibility features should be built in from the first release, not added later.',
+			'I checked the battery health report before deciding whether to replace the device.',
+			'The sync completed overnight, and all the missing files appeared in the morning.',
+			'Good technology feels dependable enough to disappear into the background.'
+		]
+	},
+	{
+		id: 'museums-and-art',
+		title: 'Museums and Art',
+		difficulty: 'advanced',
+		lines: [
+			'The museum map looked simple until we realized how many galleries were connected underground.',
+			'A small label beside the painting completely changed how I understood the scene.',
+			'We spent longer with the quiet sketches than with the largest sculpture in the room.',
+			'The audio guide offered just enough detail without interrupting the experience.',
+			'Light, color, and distance all changed the way the artwork felt from one angle to another.',
+			'Some visitors moved quickly, but others stood silently in front of one piece for ten minutes.',
+			'The curator’s notes explained why the collection was arranged by theme instead of date.',
+			'I liked the unfinished studies because they revealed the artist’s thinking more directly.',
+			'The final gallery used sound and projection to make the whole space feel alive.',
+			'We left the museum talking less about individual pieces and more about the questions they raised.'
+		]
+	},
+	{
 		id: 'disability-rights',
 		title: 'Disability Rights',
 		difficulty: 'intermediate',
