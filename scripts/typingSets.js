@@ -2,6 +2,7 @@ const typingContentSets = [
 	{
 		id: 'classic-lit',
 		title: 'Classic Literature',
+		difficulty: 'intermediate',
 		lines: [
 			'Call me Ishmael, and mind your commas.',
 			'It was the best of times, it was typed well.',
@@ -18,6 +19,7 @@ const typingContentSets = [
 	{
 		id: 'shakespeare',
 		title: 'Shakespearean Rhythm',
+		difficulty: 'intermediate',
 		lines: [
 			'To type, or not to type, that is typed.',
 			'Words, words, words, all marching on.',
@@ -34,6 +36,7 @@ const typingContentSets = [
 	{
 		id: 'poetry',
 		title: 'Poetry and Meter',
+		difficulty: 'beginner',
 		lines: [
 			'The line begins with quiet grace.',
 			'Each letter falls into its place.',
@@ -50,6 +53,7 @@ const typingContentSets = [
 	{
 		id: 'mystery',
 		title: 'Mystery and Suspense',
+		difficulty: 'intermediate',
 		lines: [
 			'The letter appeared without warning.',
 			'A shadow crept between the keys.',
@@ -66,6 +70,7 @@ const typingContentSets = [
 	{
 		id: 'fantasy',
 		title: 'Fantasy and Myth',
+		difficulty: 'intermediate',
 		lines: [
 			'The scroll unfurled before your eyes.',
 			'Ancient words shimmered on the page.',
@@ -82,6 +87,7 @@ const typingContentSets = [
 	{
 		id: 'romance',
 		title: 'Romance',
+		difficulty: 'intermediate',
 		lines: [
 			'Their eyes met across the crowded room.',
 			'A quiet smile said more than words.',
@@ -98,6 +104,7 @@ const typingContentSets = [
 	{
 		id: 'science-fiction',
 		title: 'Science Fiction',
+		difficulty: 'beginner',
 		lines: [
 			'The console hummed softly.',
 			'Coordinates scrolled across the screen.',
@@ -114,6 +121,7 @@ const typingContentSets = [
 	{
 		id: 'spyThriller',
 		title: 'Spy Thriller',
+		difficulty: 'advanced',
 		lines: [
 			'The message was hidden inside an ordinary postcard.',
 			'She memorized the exit routes before sitting down.',
@@ -130,6 +138,7 @@ const typingContentSets = [
 	{
 		id: 'philosophy',
 		title: 'Philosophy',
+		difficulty: 'beginner',
 		lines: [
 			'I think, therefore I type.',
 			'Each word questions the next.',
@@ -146,6 +155,7 @@ const typingContentSets = [
 	{
 		id: 'childrens-lit',
 		title: 'Children’s Literature',
+		difficulty: 'beginner',
 		lines: [
 			'The mouse ran across the keys.',
 			'A small letter made a big sound.',
@@ -162,6 +172,7 @@ const typingContentSets = [
 	{
 		id: 'writing-about-writing',
 		title: 'Writing About Writing',
+		difficulty: 'intermediate',
 		lines: [
 			'The sentence waits to be written.',
 			'Fingers hover, then begin.',
@@ -178,6 +189,7 @@ const typingContentSets = [
 	{
 		id: 'meta',
 		title: 'Meta Typing',
+		difficulty: 'intermediate',
 		lines: [
 			'This line knows it is a line.',
 			'The words are aware of you.',
@@ -194,6 +206,7 @@ const typingContentSets = [
 	{
 		id: 'cats',
 		title: 'Cat Typing Detected',
+		difficulty: 'beginner',
 		lines: [
 			'The cat watched the cursor blink.',
 			'Soft paws crossed the keyboard.',
@@ -210,6 +223,7 @@ const typingContentSets = [
 	{
 		id: 'dogs',
 		title: 'Dogs',
+		difficulty: 'beginner',
 		lines: [
 			'The dog waited by the desk.',
 			'A wagging tail hit the chair.',
@@ -226,6 +240,7 @@ const typingContentSets = [
 	{
 		id: 'guide-dogs',
 		title: 'Guide Dogs',
+		difficulty: 'beginner',
 		lines: [
 			'The guide dog rested calmly.',
 			'Focus mattered at every step.',
@@ -242,6 +257,7 @@ const typingContentSets = [
 	{
 		id: 'art-puns',
 		title: 'Art (may have Puns)',
+		difficulty: 'advanced',
 		lines: [
 			'The artist drew a blank on purpose.',
 			'This sketch really paints a picture.',
@@ -258,6 +274,7 @@ const typingContentSets = [
 	{
 		id: 'foodies',
 		title: 'Typing for Foodies',
+		difficulty: 'intermediate',
 		lines: [
 			'The menu reads like a love letter.',
 			'Seasoning mattered more than speed.',
@@ -274,6 +291,7 @@ const typingContentSets = [
 	{
 		id: 'food',
 		title: 'Typing while Hungry',
+		difficulty: 'beginner',
 		lines: [
 			'Breakfast started the day gently.',
 			'Soup warmed the room.',
@@ -290,6 +308,7 @@ const typingContentSets = [
 	{
 		id: 'disability-rights',
 		title: 'Disability Rights',
+		difficulty: 'intermediate',
 		lines: [
 			'Disability rights are civil rights.',
 			'Access should never be optional.',
@@ -306,6 +325,7 @@ const typingContentSets = [
 	{
 		id: 'digital-accessibility',
 		title: 'Digital Accessibility',
+		difficulty: 'advanced',
 		lines: [
 			'Good headings help everyone navigate faster.',
 			'Labels should clearly describe each input.',
@@ -322,6 +342,7 @@ const typingContentSets = [
 	{
 		id: 'travel',
 		title: 'Travel',
+		difficulty: 'advanced',
 		lines: [
 			'Airports are busy places full of announcements, luggage, and long lines.',
 			'I checked my passport twice before leaving the house.',
@@ -338,6 +359,7 @@ const typingContentSets = [
 	{
 		id: 'gardening',
 		title: 'Gardening',
+		difficulty: 'advanced',
 		lines: [
 			'The soil was dark, loose, and ready for planting.',
 			'Tomatoes grow best with steady water and full sun.',
@@ -354,6 +376,7 @@ const typingContentSets = [
 	{
 		id: 'space',
 		title: 'Space and Planets',
+		difficulty: 'beginner',
 		lines: [
 			'Planets drifted across the screen.',
 			'Orbits followed silent rules.',
@@ -370,6 +393,7 @@ const typingContentSets = [
 	{
 		id: 'biology',
 		title: 'Biology',
+		difficulty: 'advanced',
 		lines: [
 			'Cells divide through a carefully controlled process.',
 			'DNA carries instructions for growth and repair.',
@@ -386,6 +410,7 @@ const typingContentSets = [
 	{
 		id: 'history',
 		title: 'History',
+		difficulty: 'beginner',
 		lines: [
 			'History remembers small details.',
 			'Stories survived careful writing.',
@@ -402,6 +427,7 @@ const typingContentSets = [
 	{
 		id: 'chemistry',
 		title: 'Chemistry',
+		difficulty: 'beginner',
 		lines: [
 			'Atoms moved in steady patterns.',
 			'Bonds formed with quiet force.',
@@ -418,6 +444,7 @@ const typingContentSets = [
 	{
 		id: 'fun-and-games',
 		title: 'Fun and Games',
+		difficulty: 'beginner',
 		lines: [
 			'The game began with a click.',
 			'Rules were learned quickly.',
@@ -434,6 +461,7 @@ const typingContentSets = [
 	{
 		id: 'rock-bands',
 		title: 'Rock Bands',
+		difficulty: 'beginner',
 		lines: [
 			'The Beatles',
 			'The Rolling Stones',
@@ -460,6 +488,7 @@ const typingContentSets = [
 	{
 		id: 'musicians',
 		title: 'Famous Musicians',
+		difficulty: 'beginner',
 		lines: [
 			'John Lennon',
 			'Paul McCartney',

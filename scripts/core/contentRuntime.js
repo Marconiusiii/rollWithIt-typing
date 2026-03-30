@@ -27,22 +27,47 @@ export function populateContentSetSelect({ contentSetSelect, typingContentSets }
 
 	contentSetSelect.innerHTML = '';
 
-	const nonCodeSets = [];
+	const difficultyOrder = ['beginner', 'intermediate', 'advanced'];
+	const difficultyLabels = {
+		beginner: 'Beginner',
+		intermediate: 'Intermediate',
+		advanced: 'Advanced'
+	};
+	const nonCodeSetsByDifficulty = {
+		beginner: [],
+		intermediate: [],
+		advanced: []
+	};
 	const codeSets = [];
 
 	for (const set of typingContentSets) {
 		if (set.type === 'code') {
 			codeSets.push(set);
 		} else {
-			nonCodeSets.push(set);
+			const difficulty = difficultyOrder.includes(set.difficulty)
+				? set.difficulty
+				: 'intermediate';
+			nonCodeSetsByDifficulty[difficulty].push(set);
 		}
 	}
 
-	for (const set of nonCodeSets) {
-		const option = document.createElement('option');
-		option.value = set.id;
-		option.textContent = set.title;
-		contentSetSelect.appendChild(option);
+	for (const difficulty of difficultyOrder) {
+		const sets = nonCodeSetsByDifficulty[difficulty];
+		if (sets.length === 0) {
+			continue;
+		}
+
+		const difficultyGroup = document.createElement('optgroup');
+		difficultyGroup.label = difficultyLabels[difficulty];
+
+		for (const set of sets) {
+			const option = document.createElement('option');
+			option.value = set.id;
+			option.textContent = set.title;
+			difficultyGroup.appendChild(option);
+		}
+
+		contentSetSelect.appendChild(difficultyGroup);
 	}
 
 	if (codeSets.length > 0) {
