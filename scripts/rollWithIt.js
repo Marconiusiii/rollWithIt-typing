@@ -80,6 +80,7 @@ let totalKeystrokes = 0;
 let errors = 0;
 let errorKeys = new Set();
 let errorWords = new Set();
+let finishSequenceActive = false;
 
 let typingStartTime = null;
 let totalTypingTime = 0;
@@ -631,7 +632,7 @@ async function handleCharacterInput(char) {
 	await GameplayRuntime.handleCharacterInput({
 		char,
 		gameState,
-		finishGame,
+		finishLessonWithOutro,
 		lines,
 		currentLineIndex,
 		currentCharIndex,
@@ -697,12 +698,35 @@ function handleKeyDown(e) {
 		replayExpectedChar,
 		speakExpectedWord,
 		speakRemainingLine,
-		finishGame,
+		finishLessonWithOutro,
 		queueCharacterInput
 	});
 }
 
+async function finishLessonWithOutro() {
+	if (gameState !== 'PLAYING' || finishSequenceActive) {
+		return;
+	}
+
+	finishSequenceActive = true;
+
+	try {
+		if (audioCtx.state === 'suspended') {
+			await audioCtx.resume();
+		}
+	} catch {
+		// Keep going to results even if audio resume fails.
+	}
+
+	playFinalRickChordProgression();
+
+	setTimeout(() => {
+		finishGame();
+	}, 1500);
+}
+
 function finishGame() {
+	finishSequenceActive = false;
 	totalTypingTime = Metrics.accumulateElapsedTime(totalTypingTime, typingStartTime);
 	typingStartTime = null;
 
@@ -789,7 +813,7 @@ function startBtnHandler() {
 
 function exitBtnHandler() {
 	if (gameState === 'PLAYING') {
-		finishGame();
+		void finishLessonWithOutro();
 	}
 }
 

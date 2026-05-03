@@ -24,7 +24,7 @@ function getErroredWord(line, charIndex) {
 export async function handleCharacterInput({
 	char,
 	gameState,
-	finishGame,
+	finishLessonWithOutro,
 	lines,
 	currentLineIndex,
 	currentCharIndex,
@@ -63,7 +63,7 @@ export async function handleCharacterInput({
 	}
 
 	if (char === '\\') {
-		finishGame();
+		await finishLessonWithOutro();
 		return;
 	}
 
@@ -176,7 +176,7 @@ export function handleKeyDown({
 	replayExpectedChar,
 	speakExpectedWord,
 	speakRemainingLine,
-	finishGame,
+	finishLessonWithOutro,
 	queueCharacterInput
 }) {
 	if (gameState !== 'PLAYING') {
@@ -220,7 +220,7 @@ export function handleKeyDown({
 
 		if (e.ctrlKey && !e.shiftKey && e.code === 'Backslash') {
 			e.preventDefault();
-			finishGame();
+			void finishLessonWithOutro();
 			return;
 		}
 	} else {
